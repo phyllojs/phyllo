@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  verify:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun ci --ignore-scripts
+
+      - name: Check formatting
+        run: bun run format:check
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Test
+        run: bun run test
+
+      - name: Build docs
+        run: bun run --cwd docs build
+
+      - name: Verify content cache
+        run: bun scripts/verify-content-cache.ts
+
+      - name: Verify asset build
+        run: bun scripts/verify-asset-build.ts
+
+      - name: Verify symlink content
+        run: bun scripts/verify-symlinks.ts
+
+      - name: Verify theme template
+        run: bun scripts/verify-theme-template.ts
+
+      - name: Verify frontmatter
+        run: bun scripts/verify-frontmatter.ts
+
+      - name: Verify site template
+        run: bun scripts/verify-site-template.ts
+
+      - name: Verify page binding
+        run: bun scripts/verify-page-binding.ts
+
+      - name: Verify dev recovery
+        run: bun scripts/verify-dev-recovery.ts
+
+      - name: Verify theme source
+        run: bun scripts/verify-theme-source.ts
