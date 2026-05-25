@@ -1,0 +1,44 @@
+{
+  "name": "@phyllo/core",
+  "version": "0.1.0",
+  "description": "The Bun build engine for Phyllo.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xueelf/phyllo.git",
+    "directory": "packages/core"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": "./src/index.ts",
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "@mdx-js/mdx": "^3.1.1",
+    "@shikijs/rehype": "^4.4.3",
+    "@types/mdast": "^4.0.4",
+    "@types/validate-npm-package-name": "^4.0.2",
+    "phyllo": "workspace:*",
+    "property-information": "^7.2.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "rehype-raw": "^7.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-mdx-frontmatter": "^6.0.0",
+    "shiki": "^4.4.3",
+    "validate-npm-package-name": "^8.0.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "bun",
+      "version": ">=1.4.0",
+      "onFail": "warn"
+    },
+    "packageManager": {
+      "name": "bun",
+      "version": ">=1.4.0",
+      "onFail": "warn"
+    }
+  }
+}
