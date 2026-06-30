@@ -1,0 +1,46 @@
+{
+  "name": "phyllo",
+  "version": "0.1.0",
+  "description": "A Bun-only framework for building documentation sites and blogs with Markdown and MDX.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xueelf/phyllo.git",
+    "directory": "packages/phyllo"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.d.ts",
+    "./page": {
+      "browser": "./src/page.browser.ts",
+      "bun": "./src/page.bun.ts",
+      "default": "./src/page.bun.ts"
+    },
+    "./render": "./src/render/index.ts",
+    "./site": "./src/site-data.ts",
+    "./types": "./src/data.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "minisearch": "^7.2.0"
+  },
+  "peerDependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "bun",
+      "version": ">=1.4.0",
+      "onFail": "warn"
+    },
+    "packageManager": {
+      "name": "bun",
+      "version": ">=1.4.0",
+      "onFail": "warn"
+    }
+  }
+}
