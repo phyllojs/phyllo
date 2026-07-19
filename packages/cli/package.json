@@ -1,0 +1,35 @@
+{
+  "name": "@phyllo/cli",
+  "version": "0.1.0",
+  "description": "The command-line interface for Phyllo.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xueelf/phyllo.git",
+    "directory": "packages/cli"
+  },
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "phyllo": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "@phyllo/core": "workspace:*",
+    "create-phyllo": "workspace:*",
+    "rebake": "^0.1.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "bun",
+      "version": ">=1.4.0",
+      "onFail": "warn"
+    },
+    "packageManager": {
+      "name": "bun",
+      "version": ">=1.4.0",
+      "onFail": "warn"
+    }
+  }
+}
