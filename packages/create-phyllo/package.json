@@ -1,0 +1,37 @@
+{
+  "name": "create-phyllo",
+  "version": "0.1.0",
+  "description": "Create a Phyllo site or theme.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xueelf/phyllo.git",
+    "directory": "packages/create-phyllo"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": "./src/index.ts",
+  "bin": {
+    "create-phyllo": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "templates"
+  ],
+  "dependencies": {
+    "@types/validate-npm-package-name": "^4.0.2",
+    "rebake": "^0.1.0",
+    "validate-npm-package-name": "^8.0.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "bun",
+      "version": ">=1.4.0",
+      "onFail": "warn"
+    },
+    "packageManager": {
+      "name": "bun",
+      "version": ">=1.4.0",
+      "onFail": "warn"
+    }
+  }
+}
