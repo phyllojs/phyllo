@@ -1,0 +1,44 @@
+{
+  "name": "phyllo-theme-docs",
+  "version": "0.1.0",
+  "description": "A documentation theme for Phyllo.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xueelf/phyllo.git",
+    "directory": "themes/docs"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": "./src/index.tsx",
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "remixicon": "^4.9.1"
+  },
+  "peerDependencies": {
+    "algoliasearch": "^5.0.0",
+    "phyllo": "workspace:^",
+    "react": "^19.3.0"
+  },
+  "peerDependenciesMeta": {
+    "algoliasearch": {
+      "optional": true
+    }
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "bun",
+      "version": ">=1.4.0",
+      "onFail": "warn"
+    },
+    "packageManager": {
+      "name": "bun",
+      "version": ">=1.4.0",
+      "onFail": "warn"
+    }
+  }
+}

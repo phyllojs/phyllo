@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "types": ["bun", "phyllo/client"] },
+  "include": ["src", "tests"]
+}
