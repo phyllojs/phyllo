@@ -1,0 +1,47 @@
+.doc-callout {
+  --callout-color: var(--docs-accent);
+  --callout-background: var(--docs-accent-background);
+  padding: 1rem 1.25rem;
+  margin-block: 1.5rem;
+  border: 1px solid color-mix(in oklab, var(--callout-color), transparent 85%);
+  border-radius: 0.75rem;
+  background: var(--callout-background);
+  font-size: 0.875rem;
+}
+.doc-callout[data-type='tip'] {
+  --callout-color: light-dark(#15803d, #4ade80);
+  --callout-background: light-dark(
+    color-mix(in oklab, #15803d, white 92%),
+    color-mix(in oklab, #4ade80, var(--docs-background) 85%)
+  );
+}
+.doc-callout[data-type='info'] {
+  --callout-color: light-dark(#0891b2, #22d3ee);
+  --callout-background: light-dark(
+    color-mix(in oklab, #0891b2, white 92%),
+    color-mix(in oklab, #22d3ee, var(--docs-background) 85%)
+  );
+}
+.doc-callout[data-type='warning'] {
+  --callout-color: light-dark(#a16207, #fbbf24);
+  --callout-background: light-dark(
+    color-mix(in oklab, #a16207, white 92%),
+    color-mix(in oklab, #fbbf24, var(--docs-background) 85%)
+  );
+}
+.doc-callout[data-type='danger'] {
+  --callout-color: light-dark(#b91c1c, #f87171);
+  --callout-background: light-dark(
+    color-mix(in oklab, #b91c1c, white 92%),
+    color-mix(in oklab, #f87171, var(--docs-background) 85%)
+  );
+}
+.doc-callout-title {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--callout-color);
+  font-weight: 600;
+}
+.doc-callout p {
+  margin: 0.5rem 0 0;
+}
