@@ -1,0 +1,138 @@
+.search-dialog {
+  width: min(36rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 4rem);
+  margin: min(18dvh, 8rem) auto auto;
+  padding: 0;
+  border: 1px solid var(--docs-border);
+  border-radius: 1rem;
+  background: var(--docs-surface-raised);
+  color: var(--docs-text);
+  white-space: normal;
+  box-shadow: var(--docs-raised-shadow);
+}
+
+.search-dialog::backdrop {
+  background: var(--docs-backdrop);
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--docs-border);
+}
+
+.search-field {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.5rem;
+  color: var(--docs-text-muted);
+}
+
+.search-field > .icon {
+  flex-shrink: 0;
+}
+
+.search-field:focus-within {
+  color: var(--docs-accent);
+}
+
+.search-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--docs-text-strong);
+  caret-color: var(--docs-accent);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.search-field input::placeholder {
+  color: var(--docs-text-muted);
+}
+
+.search-field input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.search-results {
+  max-height: min(28rem, calc(100dvh - 14rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem;
+}
+
+.search-results ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.search-results a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  font-size: 0.875rem;
+}
+
+.search-results a > .icon {
+  flex-shrink: 0;
+  color: var(--docs-text-muted);
+}
+
+.search-results a:is(:hover, :focus-visible) :is(strong, .icon) {
+  color: var(--docs-accent);
+}
+
+.search-results strong {
+  display: block;
+  color: var(--docs-text-strong);
+  font-weight: 500;
+}
+
+.search-result-page {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--docs-text-muted);
+  font-size: 0.75rem;
+}
+
+.search-results mark {
+  border-radius: 0.15rem;
+  background: var(--docs-accent-background);
+  color: var(--docs-accent);
+}
+
+.search-result-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.search-result-content > :is(small, strong, span) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-result-content > span {
+  display: block;
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--docs-text-muted);
+}
+
+.search-results p {
+  padding: 1.5rem 1rem;
+  margin: 0;
+  color: var(--docs-text-muted);
+  font-size: 0.875rem;
+}
