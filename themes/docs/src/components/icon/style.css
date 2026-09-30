@@ -1,0 +1,108 @@
+.icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-color: currentColor;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+.icon-search {
+  --icon: url('remixicon/icons/System/search-line.svg');
+}
+
+.icon-sun {
+  --icon: url('remixicon/icons/Weather/sun-line.svg');
+}
+
+.icon-moon {
+  --icon: url('remixicon/icons/Weather/moon-line.svg');
+}
+
+.icon-language {
+  --icon: url('remixicon/icons/Editor/translate-2.svg');
+}
+
+.icon-github {
+  --icon: url('remixicon/icons/Logos/github-line.svg');
+}
+
+.icon-gitlab {
+  --icon: url('remixicon/icons/Logos/gitlab-line.svg');
+}
+
+.icon-gitee {
+  --icon: url('remixicon/icons/Logos/gitee-line.svg');
+}
+
+.icon-npm {
+  --icon: url('remixicon/icons/Logos/npmjs-line.svg');
+}
+
+.icon-discord {
+  --icon: url('remixicon/icons/Logos/discord-line.svg');
+}
+
+.icon-slack {
+  --icon: url('remixicon/icons/Logos/slack-line.svg');
+}
+
+.icon-telegram {
+  --icon: url('remixicon/icons/Logos/telegram-line.svg');
+}
+
+.icon-x {
+  --icon: url('remixicon/icons/Logos/twitter-x-line.svg');
+}
+
+.icon-bluesky {
+  --icon: url('remixicon/icons/Logos/bluesky-line.svg');
+}
+
+.icon-youtube {
+  --icon: url('remixicon/icons/Logos/youtube-line.svg');
+}
+
+.icon-bilibili {
+  --icon: url('remixicon/icons/Logos/bilibili-line.svg');
+}
+
+.icon-rss {
+  --icon: url('remixicon/icons/Device/rss-line.svg');
+}
+
+.icon-email {
+  --icon: url('remixicon/icons/Business/mail-line.svg');
+}
+
+.icon-qq {
+  --icon: url('remixicon/icons/Logos/qq-line.svg');
+}
+
+.icon-arrow {
+  --icon: url('remixicon/icons/Arrows/arrow-right-line.svg');
+}
+
+.icon-close {
+  --icon: url('remixicon/icons/System/close-line.svg');
+}
+
+.icon-check {
+  --icon: url('remixicon/icons/System/check-line.svg');
+}
+
+.icon-plus {
+  --icon: url('remixicon/icons/System/add-line.svg');
+}
+
+.icon-minus {
+  --icon: url('remixicon/icons/System/subtract-line.svg');
+}
+
+.icon-link {
+  --icon: url('remixicon/icons/Editor/link.svg');
+}
+
+.icon-chevron-down {
+  --icon: url('remixicon/icons/Arrows/arrow-down-s-line.svg');
+}
