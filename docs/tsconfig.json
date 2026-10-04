@@ -1,0 +1,4 @@
+{
+  "extends": "../tsconfig.json",
+  "include": ["phyllo.config.ts", "content", ".phyllo/*.d.ts"]
+}

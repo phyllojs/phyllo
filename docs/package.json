@@ -1,0 +1,21 @@
+{
+  "name": "docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "phyllo build",
+    "dev": "phyllo dev --port 3000",
+    "sync": "phyllo sync",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "phyllo": "workspace:*",
+    "phyllo-theme-docs": "workspace:*",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@phyllo/cli": "workspace:*",
+    "@phyllo/core": "workspace:*"
+  }
+}
