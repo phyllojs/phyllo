@@ -1,0 +1,80 @@
+# 页面信息 \{#frontmatter\}
+
+文件顶部可以用一段 YAML 保存当前页面的信息，例如标题和描述。这段内容称为 frontmatter，框架和主题约定字段的含义。
+
+## 什么是 frontmatter \{#what-is-frontmatter\}
+
+frontmatter 位于文件最上方，上下各有一行 `---`：
+
+```md
+---
+title: 安装
+description: 安装步骤和常见问题。
+---
+
+# 安装说明 \{#installation\}
+```
+
+它采用 YAML 格式，通过空格缩进表示层级，以 `字段: 值` 的形式保存信息。frontmatter 只描述页面，正文写在结束的 `---` 之后。省略 frontmatter 时，页面仍然正常生成。
+
+## 设置标题 \{#title\}
+
+`title` 设置页面名称，主题在浏览器标题和导航中使用。取值顺序如下：
+
+1. frontmatter 中的 `title`。
+2. 正文的第一个一级标题。
+3. 文件名。
+
+目录首页的 `index` 文件没有标题时，会使用站点配置中的 `title`。上面的示例中，页面名称是「安装」，正文的一级标题仍是「安装说明」。
+
+## 设置描述 \{#description\}
+
+`description` 描述当前页面，用于 HTML 的 `description` 标签和搜索摘要。主题渲染描述标签时使用这个字段，省略时默认使用站点配置中的 `description`。搜索索引只使用本字段和第一个标题之前的正文，不会回退到站点描述。
+
+站点默认描述适合概括整个站点，页面描述可以更具体。两者的关系见 [站点配置参考](../reference/configuration.mdx#metadata)。
+
+## 主题字段 \{#theme-fields\}
+
+框架只读取 `title` 和 `description`，其他字段原样保留，主题可以自行解释。主题可以定义自己的字段、默认值和校验规则。
+
+各主题读取哪些字段，以对应主题的文档为准，见 [主题概述](../themes/overview.mdx)。
+
+同一字段可以被多个主题使用，更换主题时需要按新主题的约定调整。
+
+## 在正文中读取 \{#read-in-content\}
+
+MDX 正文可以直接读取当前文件的 frontmatter 字段：
+
+```mdx
+---
+title: 安装
+my-key: 特殊字段
+author:
+  name: 作者
+---
+
+# {frontmatter.title}
+
+{frontmatter['my-key']}，作者 {frontmatter.author.name}
+```
+
+`frontmatter` 是当前文件的命名导出，其他模块也可以导入。省略 frontmatter、空块或仅含注释时，它的值是空对象。字段名包含连字符或使用嵌套结构时，按对象属性访问。
+
+片段里的 `frontmatter` 属于片段自身。片段需要读取宿主页面时使用 [useFrontmatter](../reference/hooks.mdx#use-frontmatter)，它读取当前渲染页面的数据。
+
+生成的 `.phyllo/mdx.d.ts` 提供 `frontmatter` 的类型。站点的 `tsconfig.json` 需要把 `.phyllo/*.d.ts` 加入 `include`，新模板已包含，已有站点需要补上。
+
+这种取值方式来自 MDX 官方指南，见 [Frontmatter](https://mdxjs.com/guides/frontmatter/)。
+
+## YAML 写法 \{#yaml\}
+
+YAML 对缩进和符号较为敏感，书写时注意以下几点：
+
+- 使用空格缩进，不使用制表符。
+- 文字包含冒号或特殊符号时加上引号，例如日期写成 `date: '2026-01-01'`。
+- 布尔值写成 `false`，不能写成字符串 `'false'`。
+- 列表项以 `-` 开头，同一层级保持一致缩进。
+
+构建报错时，先检查这几处，报错信息会指出文件和字段。
+
+页面信息设置完成后，可以继续阅读 [部署](./deployment.mdx)。

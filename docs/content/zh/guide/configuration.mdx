@@ -1,0 +1,90 @@
+# 站点配置 \{#configuration\}
+
+`phyllo.config.ts` 保存站点的公共设置，包括主题、名称、描述和 HTML 语言。该文件所在的目录即站点根目录。
+
+## 配置文件 \{#config-file\}
+
+沿用快速上手中创建的本地主题，配置如下：
+
+```ts
+import { defineConfig } from '@phyllo/core';
+
+export default defineConfig({
+  theme: 'phyllo-theme-my-theme',
+  title: '我的站点',
+  description: '记录项目的安装方法与使用示例。',
+  lang: 'zh-CN',
+});
+```
+
+修改设置时保留 `import` 与 `export default defineConfig(...)`，只调整花括号内的字段。冒号左侧是字段名，右侧是值。名称、描述和包名放在引号内，字段之间以英文逗号分隔。
+
+`defineConfig()` 为字段提供编辑器提示。开发服务运行期间保存配置，浏览器会自动刷新。字段写错时，终端会指出文件和字段名，按提示修正。
+
+`package.json`、`bun.lock` 和 `tsconfig.json` 用于管理依赖和类型，写作时无需编辑。
+
+## 站点名称与描述 \{#metadata\}
+
+`title` 是站点名称，`description` 是站点的默认描述，主题通过 `useSite()` 读取。主题输出页面标题和描述。主题没有定义对应值时，使用站点配置中的这两个字段。
+
+文章也可以在自己的文件顶部设置这两个字段，取舍规则见 [页面信息](./frontmatter.mdx)。
+
+## 选择主题 \{#theme\}
+
+`theme` 填写已安装的主题包名。上面的示例对应 `themes/my-theme/` 中的本地主题。创建项目时使用了其他主题名称，需要保留生成的包名。
+
+更换主题前需要先安装新主题，步骤见 [安装与使用](../themes/installation.mdx)。各主题约定导航和首页等展示设置。
+
+## HTML 语言 \{#lang\}
+
+`lang` 为页面的 `<html lang>` 属性提供默认值，例如：
+
+```ts
+lang: 'zh-CN',
+```
+
+字段只接受字符串，且需要是合法的语言标签。主题通过 `useSite().lang` 读取，作为 `<html lang>` 的默认值，主题已经定义语言时以主题为准。整站使用同一种语言时写在这里，主题按内容范围为多语言站点输出语言属性。
+
+浏览器通过 `<html lang>` 了解页面所用的语言。这个字段不参与路由，内容使用多种语言时，由主题决定各页的语言和切换方式。
+
+## 重定向 \{#redirects\}
+
+`redirects` 将一个页面地址指向另一个：
+
+```ts
+redirects: {
+  '/': '/zh',
+},
+```
+
+来源和目标都是站内页面地址，以 `/` 开头，除根路径外不带尾斜杠。规则不支持外链、通配符、查询参数和锚点，目标页面需要存在。开发服务返回 302，构建产物是带 `meta refresh` 的跳转页。
+
+完整规则和报错情况见 [站点配置参考](../reference/configuration.mdx#redirects)。
+
+## 本地搜索 \{#search\}
+
+主题需要通过 Phyllo 查询本地内容时，开启搜索索引：
+
+```ts
+search: true,
+```
+
+开启后构建会生成本地搜索索引，主题通过 `useSearch()` 取得查询函数读取。不配置时值为 `false`，不生成索引，查询返回空结果。
+
+这个开关不控制主题接入的远程搜索。使用 Algolia 等服务时，需要按照主题说明配置服务参数，无需开启本地搜索。字段说明见 [站点配置参考](../reference/configuration.mdx#search)。
+
+## 头部标签 \{#head\}
+
+`head` 用于追加页面的头部标签，例如标签页图标和自定义样式表：
+
+```ts
+head: {
+  link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+},
+```
+
+示例中的文件放在 `public/` 下，因此地址是 `/favicon.svg`。配置中也可以使用外部网址。支持的标签类型和追加规则见 [站点配置参考](../reference/configuration.mdx#head)。
+
+## 下一步 \{#next-steps\}
+
+站点信息设置完成后即可开始编写文章。文件如何生成页面见 [页面与路由](./routing.mdx)，正文的写法见 [文章写作](./writing.mdx)。

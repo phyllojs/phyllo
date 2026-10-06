@@ -1,0 +1,146 @@
+import { Callout } from 'phyllo-theme-docs';
+
+import CopyCommand from '../../components/CopyCommand';
+
+# 文章写作 \{#writing\}
+
+本页介绍文章的基本排版、组件用法和浏览器端代码的写法。文章有两种扩展名，`.mdx` 支持 Markdown 与 JSX，正文中可以使用组件和表达式。`.md` 只解析 Markdown。两种文件的排版语法和页面地址规则相同。
+
+## 基本排版 \{#markdown\}
+
+标题、段落、列表、引用、表格和任务列表的写法与 Markdown 相同：
+
+```md
+## 检查环境
+
+确认所需工具已经安装。
+
+- 文本编辑器
+- Bun
+
+1. 打开项目目录。
+2. 安装依赖。
+3. 启动预览。
+```
+
+Phyllo 默认开启 GFM（GitHub 风格的 Markdown 扩展）支持。`.md` 和 `.mdx` 都可以使用表格和任务列表。Markdown 的完整语法见 [Markdown 官方指南](https://www.markdownguide.org/basic-syntax/)，本页不再重复。
+
+## 章节锚点 \{#anchors\}
+
+标题可以指定锚点，供链接跳转到指定小节：
+
+```mdx
+## 准备环境 \{#prerequisites\}
+```
+
+锚点在地址中以 `#` 开头，例如 `/guide/installation#prerequisites`。花括号和反斜杠不会显示在页面上。同一页面的锚点需要唯一，建议使用英文单词，便于中英文页面共用同一批链接。只有二级和三级标题会进入页面右侧的页内大纲。
+
+## 代码块 \{#code\}
+
+行内代码使用一对反引号，例如 `bun run dev`。多行代码使用三个反引号包围，并在开头的反引号后标注语言：
+
+````md
+```ts
+const message = 'Hello, Phyllo';
+console.log(message);
+```
+````
+
+Phyllo 默认使用 Shiki 高亮代码块。常用语言包括 `mdx`、`ts`、`tsx`、`js`、`json` 和 `sh`。省略语言、填写 `text` 或未知语言时，代码按纯文本显示。行内代码不参与高亮。
+
+关闭高亮或接入其他高亮插件的方法见 [站点配置参考](../reference/configuration.mdx#markdown)。
+
+## 表达式 \{#expressions\}
+
+MDX 支持在正文中写 JavaScript 表达式。常见的用法是把反复出现的值定义在一处，再在正文里引用：
+
+```mdx
+export const minimumBun = '1.4';
+
+Phyllo 需要 Bun {minimumBun} 或更高版本。
+```
+
+`export const` 在文件顶部定义一个变量，花括号中的 `{minimumBun}` 在构建时替换为它的值。上面这段正文渲染为：
+
+Phyllo 需要 Bun 1.4 或更高版本。
+
+需要展示花括号本身时，把它放进行内代码或代码块。
+
+## 使用组件 \{#components\}
+
+组件通过 `import` 引入，再像标签一样写进正文。下面的组件保存在 `content/components/CopyCommand.tsx`，用于复制一段命令。导入路径相对于当前文件，文章在 `content/` 根目录时的写法如下：
+
+```mdx
+import CopyCommand from './components/CopyCommand';
+
+<CopyCommand command="bun add phyllo" label="复制安装命令" />
+```
+
+文章放在子目录时按层级调整，例如 `content/zh/guide/` 中的文章使用 `../../components/CopyCommand`。
+
+**结果展示**
+
+<CopyCommand command="bun add phyllo" label="复制安装命令" />
+
+组件的属性用于传入数据，上面的 `command` 是要复制的命令，`label` 是按钮文字。组件没有导入时，构建会报错，报错原文见 [故障排查](../about/troubleshooting.mdx#missing-import)。组件的写法和可用属性见下一节。
+
+## 创建组件 \{#create-component\}
+
+组件是一个返回 JSX 的 TypeScript 文件，`content/components/CopyCommand.tsx` 的实现如下：
+
+```tsx
+import { useState } from 'react';
+
+export default function CopyCommand({
+  command,
+  label = '复制命令',
+}: {
+  command: string;
+  label?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(command);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <button type="button" onClick={copy}>
+      {copied ? '已复制' : label}
+    </button>
+  );
+}
+```
+
+`useState(false)` 保存按钮是否已经复制过，返回当前值 `copied` 和更新函数 `setCopied`。`copy()` 把命令写入剪贴板，成功后把 `copied` 设为 `true`，按钮文字随之变化。组件文件本身不会生成页面。
+
+## 使用主题组件 \{#theme-components\}
+
+主题可以导出内容组件，供文章通过 `import` 使用。下面是本站主题导出的一个组件：
+
+```mdx
+import { Callout } from 'phyllo-theme-docs';
+
+<Callout title="版本要求">Phyllo 需要 Bun 1.4 或更高版本。</Callout>
+```
+
+**结果展示**
+
+<Callout title="版本要求">Phyllo 需要 Bun 1.4 或更高版本。</Callout>
+
+主题导出的组件从主题包导入，写法与项目自己的组件相同。具体有哪些组件，以所用主题的文档为准。
+
+## 浏览器中的代码 \{#browser-code\}
+
+Phyllo 在构建时执行组件，生成页面的初始 HTML。浏览器加载页面脚本后，事件处理和状态更新才会生效。
+
+构建过程在 Bun 中执行，此时没有浏览器窗口。访问 `window`、`document` 等对象的代码需要放在事件回调或 `useEffect` 中。`useEffect` 在组件显示到浏览器后运行。
+
+上一个组件调用 `navigator.clipboard`。这段代码位于点击回调中，只在浏览器里执行，站点因此仍然可以部署为静态文件。
+
+链接、图片和其他资源的处理方式见 [链接与资源](./links-and-assets.mdx)。

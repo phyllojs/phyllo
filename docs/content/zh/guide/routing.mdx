@@ -1,0 +1,64 @@
+# 页面与路由 \{#routing\}
+
+`content/` 中的每个文件都会生成一个页面，文件的相对路径决定页面地址。本页说明地址规则与常见冲突。
+
+## 新建页面 \{#create-page\}
+
+在内容目录中新建文件，文件名以 `.mdx` 或 `.md` 结尾，即添加一个页面。例如，`content/hello.mdx` 的内容如下：
+
+```mdx
+# 你好，Phyllo
+
+这是我的第一篇文章。
+```
+
+保存后，开发服务会在 `/hello` 提供该页面。删除文件，页面随之消失。两种扩展名的区别见 [文章写作](./writing.mdx)。
+
+文章可以分目录按章节保存：
+
+```text
+content/
+├── guide/
+│   ├── configuration.mdx
+│   └── installation.mdx
+├── getting-started.mdx
+└── index.mdx
+```
+
+目录名会进入页面地址。移动文件会改变地址，指向它的链接需要同步更新。需要保持旧地址可用时，在站点配置中写一条重定向，见 [站点配置参考](../reference/configuration.mdx#redirects)。
+
+## 文件与页面地址 \{#page-urls\}
+
+文件路径决定页面地址，扩展名在地址中省略：
+
+| 源文件                           | 页面地址              |
+| -------------------------------- | --------------------- |
+| `content/index.mdx`              | `/`                   |
+| `content/getting-started.mdx`    | `/getting-started`    |
+| `content/guide/installation.mdx` | `/guide/installation` |
+| `content/guide/index.mdx`        | `/guide`              |
+
+地址以 `/` 开头，除根路径外不带尾斜杠。`.md` 与 `.mdx` 文件的地址规则相同。
+
+## index 文件 \{#index-files\}
+
+`index.md` 或 `index.mdx` 映射到所在目录的地址，文件名不出现在地址中。根目录的 `index` 对应 `/`，`guide/index` 对应 `/guide`。
+
+为目录添加首页时，将正文写入 `index` 文件，无需额外配置。
+
+## 地址冲突 \{#conflicts\}
+
+以下情况会产生同一地址，构建时直接报错：
+
+- 同一目录下同名的 `.md` 和 `.mdx` 文件。
+- `content/guide.mdx` 与 `content/guide/index.mdx`。
+
+报错信息包含冲突地址和涉及的源文件。预览时只有冲突地址返回错误，其他页面正常访问。
+
+路径前缀 `/_phyllo/` 保留给构建资源，不能用作内容目录名。显式重定向优先于同一地址的内容页面，规则见 [站点配置参考](../reference/configuration.mdx#redirects)。
+
+## 文件名建议 \{#file-names\}
+
+文件名建议使用小写英文单词，多个单词以连字符分隔，例如 `getting-started.mdx`。文章标题可以使用中文，标题与文件名不必一致。这样地址中不会出现中文编码，也便于在链接和终端中输入。
+
+正文的写法见 [文章写作](./writing.mdx)。

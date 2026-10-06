@@ -1,0 +1,88 @@
+# 快速上手 \{#getting-started\}
+
+本页从创建站点开始，依次完成安装 Bun、安装命令行工具、创建项目、启动预览和修改文章五个步骤，得到一篇可以在浏览器中访问的文章。示例使用初始化时生成的本地主题，不涉及主题开发。
+
+## 准备工作 \{#prerequisites\}
+
+Phyllo 的开发和构建需要 Bun 1.4 或更高版本。Bun 是 JavaScript 的运行时，负责运行 Phyllo 的命令和安装项目依赖。安装方法见 [Bun 安装文档](https://bun.com/docs/installation)。
+
+安装完成后，在终端检查版本：
+
+```sh
+bun --version
+```
+
+终端会显示版本号。Bun 在 Phyllo 中的用途见 [为什么选择 Bun](../about/faq.mdx#why-bun)。
+
+## 安装命令行工具 \{#install-cli\}
+
+全局安装后，可以在终端通过 `phyllo` 命令创建和预览站点：
+
+```sh
+bun add --global @phyllo/cli
+phyllo --version
+```
+
+第二条命令会显示 Phyllo 的版本号。全局安装只需执行一次，各站点的主题和依赖仍分别保存在各自的项目中。
+
+## 创建项目 \{#create-project\}
+
+下面的命令创建名为 `my-site` 的项目目录：
+
+```sh
+phyllo init my-site
+```
+
+初始化时会依次询问两项：`Choose a theme` 和 `Theme name`。选择 **Custom theme**，名称填写 `my-theme`。不确定时先按示例填写，之后可以更换。工具会生成 `themes/my-theme/`，并将它作为本地主题接入站点。
+
+创建完成后，进入项目目录并安装依赖：
+
+```sh
+cd my-site
+bun install
+```
+
+文章保存在 `content/`，站点设置保存在 `phyllo.config.ts`。`bun install` 按照项目的依赖声明安装所需的包。
+
+## 启动预览 \{#start-preview\}
+
+在项目目录运行：
+
+```sh
+phyllo dev
+```
+
+终端会显示 `Phyllo → http://localhost:3000/`，其中 `localhost` 表示本机。打开这个地址，页面会显示站点名称和 **Getting started** 链接。点击链接即可阅读模板文章，文章地址是 `http://localhost:3000/getting-started`。
+
+预览期间保持终端运行。结束预览时，在终端按 `Ctrl+C` 停止服务。
+
+## 修改文章 \{#edit-article\}
+
+用文本编辑器打开 `content/getting-started.mdx`，将正文替换为：
+
+```md
+# 我的第一篇文章
+
+这是我的站点，用来记录学习和开发过程。
+```
+
+`#` 后的文字是文章标题，下面的文字是正文。保存文件后，浏览器会更新文章内容，导航中的文章名称也会随之更新。
+
+这个文件已经是一篇可以通过网址访问的文章。后续在 `content/` 中添加文件，就可以继续增加页面。
+
+## 了解主题 \{#themes\}
+
+现在的页面只有基础排版，样式来自初始化时生成的本地主题。Phyllo 把文章转换成页面，布局和样式来自主题。
+
+需要现成的导航与文章排版时，可以 [安装文档主题](../themes/installation.mdx#npm-themes)。希望设计自己的页面时，可以继续修改本地主题，具体方法见 [编写主题](../themes/development.mdx)。
+
+## 下一步 \{#next-steps\}
+
+- [项目结构](./project-structure.mdx)：了解生成文件和目录的用途。
+- [页面与路由](./routing.mdx)：文件路径如何决定页面地址。
+- [文章写作](./writing.mdx)：Markdown 基础语法和组件用法。
+- [站点配置](./configuration.mdx)：修改站点名称、描述和语言。
+- [部署](./deployment.mdx)：把站点发布到静态托管服务。
+- [命令行工具](../reference/cli.mdx)：命令与选项汇总。
+
+遇到报错时，先查阅 [故障排查](../about/troubleshooting.mdx)。

@@ -1,0 +1,101 @@
+# 项目结构 \{#project-structure\}
+
+创建项目后，站点包含内容目录、站点配置、主题和依赖声明。本页说明各目录和文件的用途。
+
+## 目录总览 \{#overview\}
+
+使用自定义主题的站点结构如下：
+
+```text
+my-site/
+├── .phyllo/
+│   └── types.d.ts
+├── content/
+│   ├── index.mdx
+│   └── getting-started.mdx
+├── public/
+├── themes/
+│   └── my-theme/
+│       ├── src/
+│       │   └── index.tsx
+│       ├── package.json
+│       └── tsconfig.json
+├── bun.lock
+├── package.json
+├── phyllo.config.ts
+└── tsconfig.json
+```
+
+`content/` 和配置文件是必需的，`public/` 与 `themes/` 按需保留。工具会生成 `.phyllo/`，`public/` 需要时自行创建，两者在初始化后都不会立即出现。
+
+日常写作只涉及 `content/` 和 `phyllo.config.ts`，其余文件负责依赖、类型和构建产物。
+
+## content 目录 \{#content\}
+
+`content/` 保存站点的全部文章。每个文件对应一个页面，地址规则见 [页面与路由](./routing.mdx)。
+
+文章可以放在同一个目录中，也可以分目录按章节组织：
+
+```text
+content/
+├── guide/
+│   ├── configuration.mdx
+│   └── installation.mdx
+├── getting-started.mdx
+└── index.mdx
+```
+
+需要在文章中使用组件时，把组件文件放在 `content/components/` 中，文章通过相对路径导入。`.tsx` 组件不会生成页面。需要在多篇文章之间复用的 `.mdx` 片段放在以 `.` 开头的目录中，避免被收录为页面。
+
+`content/` 内的目录符号链接会被跟随，链接目录中的文章按它在 `content/` 下的路径生成页面地址，正文里的相对链接和资源也按这个逻辑路径解析：
+
+- 以 `.` 开头的目录不参与页面扫描，其中的 MDX 片段仍可被导入。
+- 指向文件的符号链接不会收录，避免同一文件出现重复页面。
+- 同一个真实目录只能通过一个链接路径出现，多个链接会让页面地址无法唯一确定，构建时直接报错。
+- 链接目标位于站点目录内时，保存后预览会更新。目标在站点目录之外时不受监听，需要重启预览。
+
+## public 目录 \{#public\}
+
+`public/` 保存无需构建处理的静态文件，例如标签页图标、字体和其他系统引用的图片。目录中的文件原样复制到输出根目录，因此 `public/favicon.svg` 对应的地址是 `/favicon.svg`。这个目录不会自动创建，需要放置这类文件时再新建。
+
+随文章引用的图片建议放在 `content/` 中，构建时会生成带哈希的文件并改写引用。两种方式的区别见 [链接与资源](./links-and-assets.mdx)。
+
+## themes 目录 \{#themes\}
+
+创建站点时选择自定义主题，工具会在 `themes/` 下生成对应的主题目录。主题以软件包的形式存在，项目按名称引用它。
+
+本地主题的源码保存在项目中，可以自行修改。不需要自定义外观时，可以改用 npm 上发布的主题，此时不需要保留该目录。两种主题的区别见 [主题概述](../themes/overview.mdx)。
+
+## .phyllo 目录 \{#phyllo\}
+
+`.phyllo/` 保存工具生成的文件，在首次运行预览、构建或同步命令后出现：
+
+- `types.d.ts` 根据内容生成，在编辑器中为文章地址和内容目录提供类型提示。
+- `bunfig.toml` 在预览时写入，用于把开发服务的插件交给 Bun 加载。
+- `dev/` 和 `build/` 存放预览与构建的中间文件。
+
+工具维护这些文件，无需手动修改，重新运行预览或构建时会自动更新。
+
+## 配置文件 \{#config-files\}
+
+| 文件               | 用途                                            |
+| ------------------ | ----------------------------------------------- |
+| `phyllo.config.ts` | 站点名称、描述、主题、HTML 语言和搜索等公共设置 |
+| `package.json`     | 依赖声明和 `dev`、`build`、`sync` 脚本          |
+| `bun.lock`         | 锁定依赖版本，保证安装结果一致                  |
+| `tsconfig.json`    | TypeScript 配置，包含内容目录和生成声明         |
+
+根目录中需要手动编辑的文件只有 `phyllo.config.ts`。依赖变化时，Bun 会写入 `package.json` 和 `bun.lock`，无需手动改动。
+
+## 版本管理 \{#version-control\}
+
+提交到仓库的内容包括：
+
+- `content/` 中的文章和组件。
+- `public/` 中的静态资源。
+- `themes/` 中的本地主题源码。
+- `phyllo.config.ts`、`package.json`、`bun.lock`、`tsconfig.json`。
+
+`node_modules/`、`dist/` 和 `.phyllo/` 不需要提交，初始化工具生成的 `.gitignore` 已包含这些规则。`bun.lock` 需要提交，托管平台据此安装依赖。
+
+了解各目录的用途后，接着阅读 [站点配置](./configuration.mdx)。

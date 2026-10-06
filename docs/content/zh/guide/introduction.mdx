@@ -1,0 +1,57 @@
+import { Callout } from 'phyllo-theme-docs';
+
+# 简介 \{#introduction\}
+
+## 什么是 Phyllo \{#what-is-phyllo\}
+
+Phyllo 是一个使用 Bun 开发和构建的静态站点框架。它读取内容目录中的 Markdown 或 MDX 文章，应用主题，生成静态 HTML 文件。
+
+文章提供内容，页面结构、导航和样式来自主题。
+
+创建第一个站点的步骤见 [快速上手](./getting-started.mdx)。
+
+下面是一篇文章的正文：
+
+```mdx
+import { Callout } from 'phyllo-theme-docs';
+
+安装前请确认已安装 Bun。
+
+<Callout title="版本要求">Phyllo 需要 Bun 1.4 或更高版本。</Callout>
+```
+
+**结果展示**
+
+安装前请确认已安装 Bun。
+
+<Callout title="版本要求">Phyllo 需要 Bun 1.4 或更高版本。</Callout>
+
+这段正文展示了 Phyllo 的两个基本部分：
+
+- **文章**：Markdown 或 MDX 文件，保存在 `content/` 目录中。
+- **主题**：提供页面的结构和样式。上面的提示框来自本站使用的文档主题。
+
+组件可以来自主题，也可以写在项目自己的 `content/components/` 目录中。提示框、示例面板和交互演示都可以写成组件在文章中使用。不需要为它们设计专用的 Markdown 语法。
+
+## Bun 与 MDX \{#bun-and-mdx\}
+
+Phyllo 使用 Bun 开发和构建。Bun 是 JavaScript 的运行时，负责命令执行和依赖安装。项目不需要额外的构建工具链。
+
+文章可以用 Markdown 或 MDX 编写。MDX 在 Markdown 的基础上支持 JSX。正文里可以引入组件和表达式，为文章添加交互。两种文件可以混用，扩展名决定使用哪种语法。
+
+## 主题 \{#themes\}
+
+主题以软件包的形式发布，安装在站点中。在站点配置中填写包名即可启用。
+
+框架负责内容解析、路由、构建产物、重定向和搜索索引，并提供 `lang`、`title`、`description` 等默认值。主题负责页面结构，输出 HTML 语言和页面元信息，框架再按站点配置追加 `head` 标签。同一份内容配合不同主题，可以生成不同类型的站点。官方主题与自定义主题的安装方式相同。主题的使用与开发见 [主题概述](../themes/overview.mdx)。
+
+## 阅读前提 \{#prerequisites\}
+
+阅读指南需要终端基础，写作不需要编程知识。使用组件和编写主题需要 JavaScript 基础。具体页面会说明需要提前了解的内容。
+
+## 选择学习路径 \{#learning-paths\}
+
+- 想搭建第一个站点：[快速上手](./getting-started.mdx) 给出从创建到预览的完整步骤。
+- 想了解设计取舍：[常见问题](../about/faq.mdx) 说明选择 Bun、MDX 和 React 的原因。
+- 想设计页面外观：[主题概述](../themes/overview.mdx) 介绍主题的能力和安装方式。
+- 想查阅配置字段：[站点配置参考](../reference/configuration.mdx) 列出全部选项。
