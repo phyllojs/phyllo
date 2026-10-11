@@ -1,0 +1,156 @@
+# 站点配置参考 \{#configuration-reference\}
+
+Phyllo 从站点根目录读取 `phyllo.config.ts`。常用设置的示例见 [站点配置](../guide/configuration.mdx)，本页列出完整字段和处理规则。
+
+## 配置格式 \{#format\}
+
+配置文件默认导出一个对象，`@phyllo/core` 中的 `defineConfig` 提供类型提示：
+
+```ts
+import { defineConfig } from '@phyllo/core';
+
+export default defineConfig({
+  theme: 'phyllo-theme-docs',
+  title: '我的项目',
+  description: '项目的安装说明与使用指南。',
+  lang: 'zh-CN',
+});
+```
+
+同一入口也导出了 `Config` 类型。各主题自行约定主题设置的格式。文档主题把导航和首页内容保存在首页的 frontmatter 中。
+
+## 字段总览 \{#options\}
+
+| 字段                     | 默认值      | 说明                           |
+| ------------------------ | ----------- | ------------------------------ |
+| `theme`                  | 必填        | 已安装的主题包名               |
+| `title`                  | `undefined` | 站点名称                       |
+| `description`            | `undefined` | 页面的默认描述                 |
+| `head`                   | `{}`        | 追加 HTML 头部标签             |
+| `lang`                   | `undefined` | HTML 语言的默认值              |
+| `redirects`              | `{}`        | 页面地址之间的跳转映射         |
+| `search`                 | `false`     | 是否生成本地搜索索引           |
+| `content`                | `'content'` | 相对于站点根目录的内容目录     |
+| `outdir`                 | `'dist'`    | 相对于站点根目录的构建输出目录 |
+| `markdown.highlight`     | `true`      | 使用 Shiki 高亮代码块          |
+| `markdown.remarkPlugins` | `[]`        | Markdown 处理插件              |
+| `markdown.rehypePlugins` | `[]`        | HTML 语法树处理插件            |
+
+省略字段时，取值为 `undefined` 的字段表示没有配置，其余字段使用上表的默认值。
+
+`theme` 使用包名，本地主题也按包名引用。`content` 和 `outdir` 位于站点内，输出目录需要与内容、资源和依赖目录分开。
+
+## 标题和描述 \{#metadata\}
+
+Phyllo 读取 frontmatter 中的 `title` 和 `description`。这两个字段用于当前页面的元信息。站点配置中的同名字段用于站点名称和默认描述。
+
+页面名称按以下顺序确定：
+
+1. frontmatter 中的 `title`。
+2. 正文的第一个一级标题。
+3. 文件名。
+
+没有标题的 `index.md` 或 `index.mdx` 会使用站点 `title`。页面描述来自 frontmatter 的 `description`。主题渲染描述标签时，页面没有描述就使用站点 `description`。
+
+主题输出页面标题和描述。主题没有定义对应值时，使用站点配置中的 `title` 和 `description`。
+
+## 头部标签 \{#head\}
+
+`head` 为内容页面添加 HTML 头部标签，例如样式表、图标和脚本：
+
+```ts
+import { defineConfig } from '@phyllo/core';
+
+export default defineConfig({
+  theme: 'phyllo-theme-docs',
+  title: '我的项目',
+  head: {
+    link: [
+      { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+      { rel: 'stylesheet', href: '/custom.css' },
+    ],
+    meta: [{ name: 'theme-color', content: '#2563eb' }],
+    script: [{ src: '/analytics.js', defer: true }],
+  },
+});
+```
+
+示例中的文件放在站点 `public/` 下，原样复制到输出目录，配置中也可以使用外部网址。
+
+| 字段       | 值的结构                                         |
+| ---------- | ------------------------------------------------ |
+| `base`     | 单个 HTML 属性对象                               |
+| `meta`     | HTML 属性对象数组                                |
+| `link`     | 属性对象数组，每项包含 `href`                    |
+| `style`    | 属性对象数组，每项用 `textContent` 提供 CSS      |
+| `script`   | 属性对象数组，用 `src` 或 `textContent` 提供脚本 |
+| `noscript` | 属性对象数组，用 `innerHTML` 提供内容            |
+
+属性名使用 React 的写法，例如 `charSet`、`noModule`、`httpEquiv`。属性值支持字符串、数字和布尔值，不接受组件或事件回调。内联内容不能包含对应标签的闭合标记，`noscript` 内容需要适用于 HTML 头部。
+
+### 追加规则 \{#head-appending\}
+
+配置中的标签直接追加到最终 HTML，主题输出的标签不受影响。相同用途的标签可以同时存在，Phyllo 不校验、不去重，也不替换主题标签。
+
+重定向页面不使用 `head` 配置。
+
+### 自定义样式 \{#custom-css\}
+
+配置中的样式表在主题构建样式之后加载，可以覆盖主题定义的 CSS 变量。主题提供哪些变量以主题文档为准。
+
+`head` 只影响输出标签，不会改变 `useSite()` 或 `usePage()` 返回的数据。
+
+## HTML 语言 \{#lang\}
+
+`lang` 接受一个语言标签，作为 `<html lang>` 的默认值：
+
+```ts
+lang: 'zh-CN',
+```
+
+TypeScript 检查字段类型，语言标签不合法时构建报错。
+
+`lang` 是主题渲染 `<html lang>` 时的默认值，主题通过 `useSite().lang` 读取。主题已经输出 `lang` 属性时保留主题的值。未配置时值为 `undefined`，框架不补充语言属性。
+
+`lang` 只提供 HTML 属性的默认值，不参与路由或语言识别。不同页面使用不同语言时，由主题决定语言属性和切换方式。
+
+## 重定向 \{#redirects\}
+
+`redirects` 使用精确的站内页面地址：
+
+```ts
+redirects: {
+  '/': '/zh',
+  '/old-guide': '/zh/guide/getting-started',
+},
+```
+
+来源和目标以 `/` 开始，除根路径外不带尾斜杠。规则不匹配子路径，也不支持外部网址、通配符、查询参数或锚点。
+
+目标页面需要存在，循环跳转会导致构建失败。同一地址同时存在源文件和显式重定向时，访问结果以重定向为准。源文件元数据仍可通过 `usePages()` 读取，但不会进入本地搜索索引。只有重定向、没有源文件的地址不会出现在 `usePages()` 中。
+
+开发服务返回 HTTP 302。构建输出包含 `meta refresh` 的跳转页，部署后的状态码取决于托管服务。
+
+## 本地搜索 \{#search\}
+
+`search` 是布尔值，默认 `false`。设置为 `true` 时，构建生成站点的本地搜索索引：
+
+```ts
+search: true,
+```
+
+索引输出到 `/_phyllo/search.json`，主题通过 [useSearch()](./hooks.mdx#use-search) 取得查询函数读取。不配置或设置为 `false` 时不生成索引，查询返回空结果。
+
+主题提供搜索界面。这个字段不控制主题接入的远程搜索，各主题自行定义远程服务的连接参数。
+
+本地索引使用 MiniSearch。索引包含每篇文章的标题、章节标题、正文、代码块和描述。索引来自源文件，不会执行组件收集运行时生成的文字。这个字段没有其他选项，也不需要远程服务。
+
+主题侧的搜索界面和选项见 [搜索](../themes/search.mdx)。
+
+## Markdown 扩展 \{#markdown\}
+
+Markdown 与 MDX 默认支持表格、任务列表和 frontmatter。Shiki 在构建时完成代码高亮，浏览器不加载 Shiki。
+
+额外的内容处理插件通过 `remarkPlugins` 或 `rehypePlugins` 配置。插件安装后需要在配置文件中导入。
+
+自定义 `rehypePlugins` 在内置高亮之后执行。使用其他高亮插件时，设置 `markdown.highlight: false`，避免重复处理。

@@ -1,0 +1,134 @@
+# Hooks 参考 \{#hooks-reference\}
+
+Hooks 用于在 React 组件中读取站点数据、页面数据和搜索结果。这些函数统一从 `phyllo` 导入，可用于主题和 MDX 组件。
+
+普通 Markdown 文章不需要使用这些接口。Hook 需要在组件或自定义 Hook 的顶层调用。不能放在条件分支、循环或事件回调中。
+
+## useSite \{#use-site\}
+
+读取公共站点信息：
+
+```tsx
+import { useSite } from 'phyllo';
+
+export function SiteName() {
+  const site = useSite();
+  return <span>{site.title}</span>;
+}
+```
+
+返回 `SiteData`，包含可选的 `title`、`description` 和 `lang`。`search` 是布尔值。`site.lang` 来自站点配置的 `lang`，未配置时为 `undefined`。`site.search` 为 `true` 时表示站点会生成本地搜索索引，不代表主题一定显示搜索入口。
+
+`useSite()` 只返回站点配置中的公共数据。主题从首页 frontmatter 读取导航、首页内容等自定义字段。这些字段不会出现在这里。
+
+## usePage \{#use-page\}
+
+读取当前页面：
+
+```tsx
+import { usePage } from 'phyllo';
+
+export function CurrentPage() {
+  const page = usePage();
+  return <a href={page.url}>{page.title}</a>;
+}
+```
+
+| 字段          | 类型                      | 说明                                   |
+| ------------- | ------------------------- | -------------------------------------- |
+| `url`         | `string`                  | 页面地址，例如 `/guide/start`          |
+| `title`       | `string`                  | frontmatter 标题、首个一级标题或文件名 |
+| `description` | `string` 或 `undefined`   | 当前页的描述，不包含站点默认描述       |
+| `filePath`    | `string` 或 `undefined`   | 相对于内容目录的源文件路径             |
+| `frontmatter` | `Record<string, unknown>` | 当前渲染页面的配置                     |
+| `hasContent`  | `boolean`                 | 源文件是否包含正文语法                 |
+
+`hasContent` 忽略空白、注释、引用定义和独立的导入导出。图片、代码块、JSX 和表达式属于正文。它不判断组件执行后是否显示内容。
+
+没有源文件的默认根首页，各字段取值如下：
+
+- `filePath` 为 `undefined`。
+- `title` 为空字符串。
+- `frontmatter` 为 `{}`。
+- `hasContent` 为 `false`。
+
+## useFrontmatter \{#use-frontmatter\}
+
+读取当前渲染页面的 frontmatter，没有配置时返回空对象：
+
+```tsx
+import { useFrontmatter } from 'phyllo';
+
+export function Summary() {
+  const { description } = useFrontmatter<{ description?: string }>();
+  return description ? <p>{description}</p> : null;
+}
+```
+
+类型参数用于编辑器提示，不会执行运行时校验。其他页面的 frontmatter 可以通过 `usePages()` 获取。片段里调用时读取宿主页面，片段自身的字段通过正文里的 `frontmatter` 读取，写法见 [页面信息](../guide/frontmatter.mdx#read-in-content)。
+
+## usePages \{#use-pages\}
+
+读取全部源页面的元数据列表：
+
+```tsx
+import { usePages } from 'phyllo';
+
+export function GuideLinks() {
+  const pages = usePages().filter(page =>
+    page.filePath.startsWith('zh/guide/'),
+  );
+
+  return (
+    <ul>
+      {pages.map(page => (
+        <li key={page.url}>
+          <a href={page.url}>{page.title}</a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+返回只读的 `ContentPage[]`，字段与 `PageData` 相同。`filePath` 一定存在，`url` 的取值来自生成的文章地址。列表包含有源文件的首页，不会为重定向或无源文件的默认首页额外创建条目。已有源文件的地址被重定向后，其元数据仍然保留。
+
+主题自行完成目录筛选，用 `page.filePath` 判断目录边界。例如 `startsWith('zh/')` 不会匹配 `zh-other/`。
+
+这个 Hook 不加载文章正文。主题可以自行排序，文档导航中的顺序不会改变原始列表。
+
+`.phyllo/types.d.ts` 提供类型提示，覆盖页面地址和内容目录。Phyllo 生成该文件，预览和构建会自动更新。需要单独更新时，在站点根目录运行 `phyllo sync`，用法见 [同步类型声明](./cli.mdx#sync)。
+
+## useSearch \{#use-search\}
+
+`useSearch()` 返回查询函数，不建立订阅、不加载索引：
+
+```ts
+const search = useSearch();
+
+const results = await search('MDX', {
+  directory: 'zh',
+  limit: 20,
+});
+```
+
+查询返回 `Promise<SearchResult[]>`。加载状态、错误展示、重试、输入防抖和旧结果失效由主题管理，完整的搜索组件示例见 [搜索](../themes/search.mdx)。
+
+选项如下：
+
+| 选项        | 默认值      | 说明                                                       |
+| ----------- | ----------- | ---------------------------------------------------------- |
+| `directory` | `undefined` | 只返回该内容目录及其所有子目录下的页面，省略时搜索全部内容 |
+| `limit`     | `20`        | 最大结果数，必须是正整数                                   |
+
+`directory` 按目录边界匹配，传入 `zh` 会命中 `zh/guide/x`，不会命中 `zhongwen`。
+
+参数使用相对于内容目录的文件夹路径，例如 `zh/guide`。路径不带首尾斜杠，也不使用 URL 编码。
+
+多语言站点的目录取决于主题，例如页面地址以 `/zh` 开头时传入 `directory: 'zh'`。核心不识别语言，只按目录筛选。
+
+每项结果包含 `url`、`title`、`heading`、`snippet` 和 `terms`。`url` 可以包含章节锚点，`heading` 和 `snippet` 可以为空字符串，`terms` 是可用于高亮的纯文本词语。
+
+空字符串查询表示不搜索，未开启本地搜索时也返回空结果，两种情况都不会加载索引。参数不合法、索引加载或查询失败时，查询会拒绝 Promise。搜索只在浏览器中执行。
+
+框架提供本地搜索查询，主题负责输入框、弹窗、结果样式和界面状态。

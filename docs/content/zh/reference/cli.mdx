@@ -1,0 +1,127 @@
+# 命令行工具 \{#cli\}
+
+`@phyllo/cli` 提供 Phyllo 的命令行工具，命令名为 `phyllo`。它用于创建站点、启动预览、构建网站和生成主题模板。
+
+第一次建站可以从 [快速上手](../guide/getting-started.mdx) 开始，本页汇总命令和选项，便于查阅。
+
+## 安装 \{#installation\}
+
+推荐全局安装命令行工具，后续示例统一使用 `phyllo` 命令。需要先安装 [Bun 1.4 或更高版本](https://bun.com/docs/installation)：
+
+```sh
+bun add --global @phyllo/cli
+phyllo --version
+```
+
+若终端提示找不到 `phyllo`，需要按 Bun 安装说明把可执行文件目录加入 `PATH`。
+
+## 创建项目 \{#init\}
+
+`init` 创建项目文件，并声明框架、命令行工具和指定的主题依赖：
+
+```sh
+phyllo init my-site --theme phyllo-theme-docs
+cd my-site
+bun install
+```
+
+`my-site` 是项目目录。后续的预览、构建和同步命令默认在项目根目录运行，也就是 `phyllo.config.ts` 所在目录。
+
+省略目录参数时，`init` 会询问项目名称，默认值为 `my-site`。使用 `phyllo init .` 初始化当前目录。目标目录需要为空，或仅包含 `.git`。目录名需要能作为 npm 包名，使用小写字母、数字和连字符，例如 `my-site`。
+
+`--theme` 或 `-t` 指定主题包名。省略时，可以选择官方文档主题或自定义主题。选择自定义主题后输入主题名称，例如 `my-theme`。工具会创建 `themes/my-theme/`。包名为 `phyllo-theme-my-theme`，并生成基础布局。
+
+## 启动预览 \{#dev\}
+
+```sh
+phyllo dev
+```
+
+命令读取站点配置，启动本地开发服务，并在文件保存后更新页面。终端会显示访问地址，`Ctrl+C` 可以停止服务。
+
+通过选项指定端口和监听地址：
+
+```sh
+phyllo dev --port 3002 --host 0.0.0.0
+```
+
+| 选项           | 默认值      | 说明                               |
+| -------------- | ----------- | ---------------------------------- |
+| `--port`、`-p` | `3000`      | 服务端口，`0` 表示自动分配         |
+| `--host`       | `localhost` | 监听地址，`0.0.0.0` 允许局域网访问 |
+
+## 构建网站 \{#build\}
+
+```sh
+phyllo build
+```
+
+命令默认将静态文件写入 `dist/`，完成后退出。部署方法见 [部署](../guide/deployment.mdx)。
+
+`dist/` 是生成目录，不是手写文件的存放位置。输出位置可以通过 `outdir` 修改。
+
+## 同步类型声明 \{#sync\}
+
+```sh
+phyllo sync
+```
+
+命令读取内容，把文章地址和内容目录写入 `.phyllo/types.d.ts`。生成的声明为 `usePages()` 与查询函数的 `directory` 选项提供编辑器提示。
+
+`dev` 和 `build` 会自动更新这份文件，无需单独运行。
+
+## 创建主题 \{#theme\}
+
+```sh
+phyllo theme themes/my-theme --package phyllo-theme-local
+```
+
+命令生成主题包、TypeScript 配置和布局组件。`--package` 或 `-n` 指定包名，省略时使用 `phyllo-theme-<目录名>`。
+
+生成的主题需要加入站点依赖后才能使用，步骤见 [自定义主题](../themes/customization.mdx) 和 [编写主题](../themes/development.mdx)。
+
+## 命令帮助 \{#help\}
+
+`--help` 列出可用命令，每个命令也有自己的帮助：
+
+```sh
+phyllo --help
+phyllo dev --help
+```
+
+## 指定站点目录 \{#directory\}
+
+`dev`、`build` 和 `sync` 接受一个可选目录参数，默认是当前目录：
+
+```sh
+phyllo build ./my-site
+```
+
+相对路径以运行命令时的当前目录为准。目标目录需要包含 `phyllo.config.ts`，并已安装站点依赖。
+
+## 使用项目内的版本 \{#scripts\}
+
+需要为不同站点固定命令行工具版本，或在托管平台自动构建时，可以使用项目内安装的版本。初始化工具已将命令行工具加入项目依赖，并提供以下脚本：
+
+| 项目脚本        | 调用命令       |
+| --------------- | -------------- |
+| `bun run dev`   | `phyllo dev`   |
+| `bun run build` | `phyllo build` |
+| `bun run sync`  | `phyllo sync`  |
+
+Bun 运行这些脚本时使用项目安装的命令行工具。其他命令可以通过 `bun run phyllo` 调用，例如 `bun run phyllo --version`。手动创建的项目可以通过 `bun add --dev @phyllo/cli @phyllo/core` 安装命令行工具和配置入口。
+
+直接运行 `phyllo` 使用全局安装的版本，项目脚本使用项目内的版本。脚本后的选项会传给命令行工具，例如 `bun run dev --port 3002`。`bun run build` 中的 `run` 不能省略，`bun build` 是 Bun 自己的打包命令。
+
+## 通过 Bun 创建 \{#create-project\}
+
+也可以直接创建项目：
+
+```sh
+bun create phyllo my-site --theme phyllo-theme-docs
+cd my-site
+bun install
+bun run dev
+```
+
+`bun create phyllo` 下载并执行 `create-phyllo`，无需提前安装全局命令行工具。它与 `phyllo init` 使用相同的初始化逻辑，两者可以任选一种。
