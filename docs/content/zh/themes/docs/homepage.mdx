@@ -1,0 +1,101 @@
+# 自定义首页 \{#homepage\}
+
+首页默认显示站点名称、描述和第一篇文章的入口。介绍区可以单独设置文案和图片，下方可以显示功能说明。这些内容与导航一样，配置在首页文件的 frontmatter 中。
+
+单语言文档的首页是 `content/index.mdx`。根文件声明 `locales` 后，首页配置写在各语言目录中，例如 `content/zh/index.mdx`。此时根文件只保存公共主题配置，不显示首页内容，见 [多语言文档](./languages.mdx)。
+
+## 默认首页 \{#default-home-page\}
+
+首页文件只有 frontmatter 时，主题显示默认介绍区。省略 `hero.title` 或 `hero.description` 时，对应内容使用站点配置中的 `title` 或 `description`。未配置站点名称时，标题使用界面语言中的「文档」。
+
+## 介绍区 \{#hero\}
+
+`hero` 用于设置介绍区，与 `nav` 和 `links` 同级：
+
+```yaml
+hero:
+  title: 我的项目文档
+  description: 从环境准备开始，逐步了解项目的使用方法。
+  actions:
+    - label: 开始阅读
+      href: /getting-started
+```
+
+`actions` 中每项使用 `label` 和 `href`。省略时主题生成默认入口，指向第一个侧栏章节的第一篇文章。设置 `actions: []` 可以隐藏所有入口。
+
+`hero.title` 和 `hero.description` 只影响首页介绍区。浏览器标题和 HTML 描述标签仍来自站点配置和页面信息。
+
+## 右侧图片 \{#image\}
+
+图片放在 `public/preview.png`，通过 `hero.image` 引用：
+
+```yaml
+hero:
+  image:
+    src: /preview.png
+    alt: 项目的预览界面
+```
+
+`src` 是图片地址，`alt` 是替代文本。桌面端图片显示在文字右侧，窄屏时移到标题上方。未提供图片时，介绍区居中显示，不保留空区域。
+
+标签页图标通过站点配置的 `head.link` 设置，与介绍区图片无关，见 [站点配置](../../guide/configuration.mdx#head)。
+
+## 功能说明 \{#features\}
+
+`features` 与 `hero` 同级，每项填写标题和说明：
+
+```yaml
+features:
+  - title: 安装
+    description: 准备环境，启动第一个站点。
+  - title: 写作
+    description: 使用 MDX 记录项目用法。
+```
+
+功能说明显示在介绍区下方，顺序与数组一致。省略 `features` 时不显示该区域。
+
+## 用正文替换默认首页 \{#custom-body\}
+
+在首页文件结束的 `---` 之后编写正文，主题使用正文替换介绍区和功能说明。顶栏仍然保留：
+
+```md
+# 我的项目 \{#my-project\}
+
+这里介绍项目的用途。
+
+[开始阅读](/getting-started)
+```
+
+首页的 `nav` 和 `links` 继续生效，无需重新配置。
+
+## 组合主题组件 \{#compose-a-home-page\}
+
+需要保留默认介绍区并追加内容时，可以导入主题导出的组件。保留首页文件的 frontmatter，正文如下：
+
+```mdx
+import { Features, Hero } from 'phyllo-theme-docs';
+
+<Hero />
+
+<Features />
+
+## 看一个例子 \{#example\}
+
+在这里补充项目内容，也可以导入自己的交互组件。
+```
+
+`Hero` 和 `Features` 分别显示配置中的介绍区和功能说明。它们之后的正文排在整个介绍区下方。
+
+右侧区域需要自定义内容时，将内容写在 `Hero` 标签内：
+
+```mdx
+import { Hero } from 'phyllo-theme-docs';
+
+<Hero>
+  <img src="/preview.png" alt="项目的预览界面" />
+</Hero>
+```
+
+标签内的内容会替代 `hero.image`。
+
+首页设置完成后，可以继续阅读 [页面布局](./layout.mdx)。

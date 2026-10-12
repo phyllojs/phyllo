@@ -1,0 +1,89 @@
+# 自定义主题 \{#customizing-themes\}
+
+现成主题可以作为本地主题的基础，继续提供布局和内容组件。定制代码保存在自己的项目中。这样既能保留原有页面，也便于更新所依赖的主题。
+
+只修改首页文字或配色时，可以直接使用主题的配置项，不必生成本地主题。
+
+## 适用场景 \{#when-to-use\}
+
+以下情况适合使用本地主题：
+
+- 需要保留官方主题的布局，只调整样式或局部结构。
+- 需要在主题中复用项目自己的组件。
+- 主题的配置项无法满足当前需求。
+
+## 生成模板 \{#create-the-package\}
+
+在站点目录运行：
+
+```sh
+phyllo theme themes/custom --package phyllo-theme-custom
+```
+
+命令生成以下文件：
+
+```text
+themes/custom/
+├── src/
+│   └── index.tsx
+├── package.json
+└── tsconfig.json
+```
+
+`themes/custom` 是源码目录，`phyllo-theme-custom` 是包名。模板包含一个基础布局，生成模板本身不会切换站点正在使用的主题。
+
+## 复用已安装主题 \{#reuse-the-theme\}
+
+在本地主题中添加要复用的主题依赖：
+
+```sh
+bun add phyllo-theme-docs --cwd themes/custom
+```
+
+`--cwd` 指定执行目录，因此依赖记录在本地主题的 `package.json` 中。将 `themes/custom/src/index.tsx` 改为：
+
+```tsx
+import DocsLayout from 'phyllo-theme-docs';
+
+import './style.css';
+
+export default DocsLayout;
+```
+
+`DocsLayout` 是文档主题导出的布局组件。文档主题继续提供首页、导航和文章布局。已有的 frontmatter 配置也继续生效。
+
+## 添加定制样式 \{#styles\}
+
+新建 `themes/custom/src/style.css`：
+
+```css
+:root {
+  --accent-color: #7c3aed;
+}
+```
+
+示例将主题色改为紫色。入口先导入原主题，再导入这份样式表，Phyllo 会将它们一起构建。不需要另行配置 `head.link`。可以覆盖的颜色变量见 [修改配色](./docs/styles.mdx#variables)。
+
+## 接入站点 \{#enable-the-theme\}
+
+在站点 `package.json` 的 `dependencies` 中添加本地主题：
+
+```json
+{
+  "dependencies": {
+    "phyllo-theme-custom": "workspace:*"
+  }
+}
+```
+
+初始化工具已经声明 `"workspaces": ["themes/*"]`。运行 `bun install` 后，将站点配置中的 `theme` 改为本地主题的包名：
+
+```ts
+theme: 'phyllo-theme-custom',
+```
+
+## 预览效果 \{#preview\}
+
+运行 `bun run dev`，首页和文章布局保持原样，链接和选中项会使用新的主题色。保存本地主题的样式后，预览页面会更新。
+
+其他主题也可以用相同方式复用布局，具体组件和可覆盖的变量以该主题文档为准。需要自行编写完整布局时，阅读 [编写主题](./development.mdx)。

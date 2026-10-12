@@ -1,0 +1,119 @@
+# 多语言文档 \{#languages\}
+
+文档主题可以为不同语言提供独立的文章、导航和首页。语言列表集中在根文件 `content/index.mdx` 中，各语言的内容分别保存在对应目录下。
+
+主题提供语言识别与切换。Phyllo 核心仍按文件路径生成页面地址。它不会把 `zh`、`en` 等目录名识别为语言。
+
+## 整理内容 \{#directories\}
+
+以快速上手中的文章为例，中文内容移到 `content/zh/`，英文译文保存到 `content/en/`：
+
+```text
+content/
+├── index.mdx
+├── zh/
+│   ├── index.mdx
+│   └── getting-started.mdx
+└── en/
+    ├── index.mdx
+    └── getting-started.mdx
+```
+
+根 `index.mdx` 保留公共配置，各语言的 `index.mdx` 保存导航和首页内容。迁移文章后，页面地址会随目录变化，正文链接和导航需要同步更新。
+
+## 声明语言范围 \{#locales\}
+
+在根文件 `content/index.mdx` 中集中声明语言：
+
+```yaml
+---
+locales:
+  /zh/:
+    lang: zh-CN
+    label: 中文
+  /en/:
+    lang: en
+    label: English
+links:
+  - icon: github
+    href: https://github.com/your-name/your-project
+---
+```
+
+是否声明 `locales` 决定根文件的用途。未声明时，它是单语言文档的首页。声明后，它只提供公共主题配置，不显示顶栏、首页介绍或正文。各语言首页分别配置在对应目录的 `index.mdx` 中。
+
+`lang` 是 HTML 语言标签，`label` 是菜单中显示的名称。公共的 `logo`、`links` 和 `search` 也写在根文件，无需复制到每种语言的首页。
+
+范围键以斜杠结尾，具体页面地址不带尾斜杠。例如 `/zh/` 包含首页 `/zh` 和文章 `/zh/getting-started`，不会匹配 `/zhongwen`。
+
+只有 `locales` 中声明的范围才具有语言含义。`content/zh/guide/index.mdx` 仍是普通文章，不需要另外配置语言。
+
+各语言使用独立目录，范围不使用根路径 `/`。根目录中的其他文章仍可正常访问，其语言属性使用站点配置的 `lang` 默认值。`locales` 不改变文章地址，也不要求每个语言目录都提供首页。
+
+## 设置各语言的导航 \{#localized-navigation\}
+
+中文首页 `content/zh/index.mdx`：
+
+```yaml
+---
+nav:
+  - label: 指南
+    sidebar:
+      - label: 入门
+        items:
+          - href: /zh/getting-started
+hero:
+  title: 我的项目文档
+  description: 从安装开始，了解项目的使用方法。
+---
+```
+
+英文首页 `content/en/index.mdx`：
+
+```yaml
+---
+nav:
+  - label: Guide
+    sidebar:
+      - label: Getting started
+        items:
+          - href: /en/getting-started
+hero:
+  title: Project documentation
+  description: Learn how to install and use the project.
+---
+```
+
+各语言首页无需再填写 `lang`。主题根据根文件的映射，为范围内的页面输出对应的 `<html lang>`。
+
+每种语言可以有自己的章节和文章顺序。语言首页的 `nav` 会替换根文件的公共导航，未设置时沿用公共导航。文章按显式链接加入导航，不受语言范围限制。
+
+首页默认显示 `hero` 和 `features`。首页写有正文时，正文替换默认内容，规则与单语言首页相同，见 [自定义首页](./homepage.mdx)。
+
+## 设置入口跳转 \{#language-and-redirect\}
+
+需要让访问者从 `/` 进入中文首页时，在 `phyllo.config.ts` 中添加：
+
+```ts
+redirects: {
+  '/': '/zh',
+},
+```
+
+根文件仍保存公共配置，访问 `/` 时按照显式规则跳转。core 执行重定向，主题不根据语言声明顺序自动跳转，也不提供 `defaultLocale`。
+
+未设置重定向时，访问 `/` 会显示空白页面。需要让根路径进入语言首页时，应配置上述跳转。完整规则见 [站点配置参考](../../reference/configuration.mdx#redirects)。
+
+## 切换语言 \{#switch-languages\}
+
+菜单按 `label` 自动排序，使用固定的英文排序规则。English 排在中文前面，配置顺序和当前页面语言不会改变菜单顺序。主题按当前页面所属的范围决定选中标记，当前语言不会移到第一项。
+
+从文章切换时，主题查找另一种语言下相同相对路径的文章。例如 `/zh/getting-started` 对应 `/en/getting-started`。存在译文时可以跳转，缺少译文时禁用对应选项。从首页切换时进入目标语言的首页。
+
+未匹配语言范围的公共页面不选中任何语言，菜单入口指向各语言首页。主题内置中文和英文界面文案，其他语言暂时使用英文界面。文章和 HTML 语言标签仍按配置保留。
+
+## 限制搜索语言 \{#search-language\}
+
+搜索服务在根文件配置一次。使用本地搜索时，主题将当前语言对应的内容目录传给查询函数的 `directory` 选项。使用 Algolia 时，各语言共用一个索引，查询按当前页面语言过滤。
+
+详细配置见 [配置搜索](./search.mdx)，全部主题字段见 [文档主题配置](./configuration.mdx)。

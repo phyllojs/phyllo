@@ -1,0 +1,75 @@
+import { Callout } from 'phyllo-theme-docs';
+
+# 使用文档主题 \{#docs-theme\}
+
+`phyllo-theme-docs` 按章节组织内容。顶栏用于切换章节，左侧栏列出当前章节的文章，右侧大纲显示正文标题。顶栏还提供搜索、明暗模式和语言切换。
+
+## 主题提供什么 \{#features\}
+
+- 首页的介绍区和功能说明。
+- 顶部章节与下拉菜单，左侧栏的分组和嵌套。
+- 文章页的页内大纲和上下篇链接。
+- 本地搜索和 Algolia。
+- 明暗模式切换。
+- 多语言目录约定和语言切换。
+
+## 开始使用 \{#installation\}
+
+新项目可以在初始化时选择文档主题。已有站点按 [安装与使用](../installation.mdx#npm-themes) 安装，包名填写 `phyllo-theme-docs`，然后在站点配置中启用。
+
+## 设置导航和首页 \{#home-settings\}
+
+导航和首页内容写在 `content/index.mdx` 的 frontmatter 中。下面的示例使用快速上手中已有的文章：
+
+```md
+---
+nav:
+  - label: 指南
+    sidebar:
+      - label: 入门
+        items:
+          - href: /getting-started
+hero:
+  title: 我的项目文档
+  description: 从安装开始，了解项目的使用方法。
+---
+```
+
+保存后，首页会显示标题、说明和第一篇文章的入口，顶栏出现「指南」章节。`nav` 只在首页填写一次，文章共用这份配置。多语言站点的公共配置也保留在根首页。各语言的导航和介绍另写在对应首页，见 [多语言文档](./languages.mdx)。
+
+首页文件只有 frontmatter 时，主题渲染默认首页。在结束的 `---` 之后编写正文，则以正文替换默认内容。
+
+## 页面布局 \{#layouts\}
+
+首页默认使用 `home` 布局，文章默认使用 `doc` 布局。只保留正文的页面使用 `page`，需要完全自定义时使用 `false`。四种布局的区别见 [页面布局](./layout.mdx)。
+
+## 内容组件 \{#content-components\}
+
+主题导出 `Callout`，用于在文章里插入提示框：
+
+```mdx
+import { Callout } from 'phyllo-theme-docs';
+
+<Callout type="warning">升级前先备份配置文件。</Callout>
+```
+
+`type` 支持 `note`（默认）、`tip`、`info`、`warning` 和 `danger`。取值决定配色和默认标题，需要自定义标题时再加 `title`：
+
+<Callout>补充说明或前提条件。</Callout>
+<Callout type="tip">更省事的一种做法。</Callout>
+<Callout type="info">构建后在 `dist/` 目录查看产物。</Callout>
+<Callout type="warning">升级前先备份配置文件。</Callout>
+<Callout type="danger">不要在生产环境执行这条命令。</Callout>
+
+首页使用的 `Hero` 和 `Features` 见 [自定义首页](./homepage.mdx)。
+
+## 继续设置 \{#next-steps\}
+
+- [组织导航](./navigation.mdx)：添加文章、划分章节和配置外部链接。
+- [自定义首页](./homepage.mdx)：设置介绍文字、图片和入口。
+- [修改配色](./styles.mdx)：通过样式表调整颜色。
+- [配置搜索](./search.mdx)：启用本地搜索或接入 Algolia。
+- [多语言文档](./languages.mdx)：按语言整理内容。
+- [文档主题配置](./configuration.mdx)：全部字段与默认行为。
+
+文档主题提供搜索框、结果列表和语言过滤，使用时按上述说明配置。开发自己的搜索界面时，再阅读 [本地搜索接口](../search.mdx)。

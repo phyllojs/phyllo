@@ -1,0 +1,61 @@
+# 安装与使用 \{#theme-installation\}
+
+主题需要安装到站点，再通过 `phyllo.config.ts` 的 `theme` 字段启用。本页以官方文档主题为例，其他已发布的主题使用相同步骤。
+
+## 创建站点时选择 \{#new-site\}
+
+初始化项目时，可以选择官方文档主题或自定义主题。指定包名可以跳过询问：
+
+```sh
+phyllo init my-site --theme phyllo-theme-docs
+```
+
+工具会把主题写入依赖声明。进入项目目录运行 `bun install` 即完成安装，无需手动添加依赖。
+
+## 安装 npm 主题 \{#npm-themes\}
+
+已有站点可以先安装主题：
+
+```sh
+bun add phyllo-theme-docs
+```
+
+然后在站点配置中填写包名，其他字段保持不变：
+
+```ts
+theme: 'phyllo-theme-docs',
+```
+
+社区主题的安装方式相同。安装前可以通过主题的 README 确认包名、Phyllo 版本要求和配置说明。主题安装在站点项目中，不使用全局安装，因此每个站点可以独立选择主题版本。
+
+## 使用本地主题 \{#local-themes\}
+
+本地主题的源码保存在项目的 `themes/` 目录中，通过工作区接入站点。工作区（workspace）让同一项目中的多个软件包互相引用。包名写在本地主题的 `package.json` 中。站点配置的 `theme` 填写同一个包名：
+
+```json
+{
+  "dependencies": {
+    "phyllo-theme-custom": "workspace:*"
+  }
+}
+```
+
+`workspace:*` 表示使用工作区内的同名包。初始化工具已经声明 `"workspaces": ["themes/*"]`，并加入所选的主题，无需手动配置。自行编写主题的步骤见 [编写主题](./development.mdx)。
+
+## 更换主题 \{#switch-theme\}
+
+更换主题时先安装新包，再修改 `theme`。
+
+主题自己的 frontmatter 和组件需要按新主题的说明调整。例如，文档主题使用 `nav` 配置导航，其他主题可能采用不同的设置。文章中导入了旧主题组件的 MDX 文件，也需要检查导入和用法。
+
+## 预览与排查 \{#preview\}
+
+在站点目录启动预览：
+
+```sh
+bun run dev
+```
+
+打开终端显示的地址，页面会使用所选主题。主题包名拼写错误或依赖未安装时，预览和构建会输出明确错误，处理方法见 [故障排查](../about/troubleshooting.mdx)。
+
+官方文档主题的配置方式见 [使用文档主题](./docs/index.mdx)。社区主题的配置方式以各自的使用说明为准。

@@ -1,0 +1,104 @@
+# 配置搜索 \{#search\}
+
+文档主题提供搜索弹窗、结果列表和关键词高亮，支持本地搜索与 Algolia。搜索参数集中写在根首页 `content/index.mdx` 中，所有语言共用。
+
+## 本地搜索 \{#local-search\}
+
+本地搜索随站点一起部署，不需要账号或远程服务。在 `phyllo.config.ts` 中开启索引：
+
+```ts
+search: true,
+```
+
+保存后，文档主题默认显示搜索入口。也可以在根首页中明确选择本地搜索：
+
+```yaml
+---
+search:
+  provider: local
+---
+```
+
+两个配置各有用途：站点配置中的 `search: true` 让 core 生成索引。主题中的 `search.provider` 决定搜索框使用哪种查询方式。明确选择 `local` 却未开启索引时，构建会报错。
+
+### 收录内容 \{#indexed-content\}
+
+索引包含源文件中的页面标题、章节标题、正文、代码块和描述。组件运行后生成的内容不会进入索引。搜索支持中文分词、前缀匹配和英文单词的轻微拼写容错。
+
+索引文件位于 `/_phyllo/search.json`，发布时与其他构建产物一起上传即可。新增或修改文章后，预览和构建会更新索引。
+
+### 多语言结果 \{#local-language\}
+
+配置 [多语言文档](./languages.mdx) 后，主题根据当前页面所属的范围选择内容目录。例如中文文章查询 `zh` 目录，英文文章查询 `en` 目录。不同语言无需重复配置搜索服务。
+
+未归属任何语言范围的公共页面搜索全部内容。
+
+## Algolia 搜索 \{#algolia\}
+
+Algolia 使用远程索引。站点需要先建立索引，并取得应用 ID、搜索密钥和索引名称。接入流程见 [Algolia DocSearch](https://docsearch.algolia.com/docs/what-is-docsearch)。
+
+### 安装与配置 \{#algolia-configuration\}
+
+在站点目录中安装查询客户端：
+
+```sh
+bun add algoliasearch
+```
+
+如果预览服务正在运行，安装后重新启动。随后在根首页中配置：
+
+```yaml
+---
+search:
+  provider: algolia
+  options:
+    appId: YOUR_APP_ID
+    apiKey: YOUR_SEARCH_ONLY_API_KEY
+    indexName: your_docs
+---
+```
+
+`apiKey` 使用可公开的搜索密钥，不能填写管理密钥。主题只调用查询接口，Algolia 管理索引的抓取和更新。
+
+所有语言共用一组参数，无需在各语言首页填写 `indexName`。Algolia 不使用 core 的本地索引，因此站点配置中的 `search` 可以保持关闭。
+
+### 索引记录 \{#records\}
+
+主题读取 DocSearch 格式的记录：
+
+```json
+{
+  "url": "https://docs.example.com/zh/getting-started#prerequisites",
+  "lang": "zh-CN",
+  "hierarchy": {
+    "lvl0": "指南",
+    "lvl1": "快速上手",
+    "lvl2": "准备环境"
+  },
+  "content": "开发和构建需要 Bun。"
+}
+```
+
+`url` 和 `hierarchy` 必填，`content` 可省略。`url` 支持 HTTP、HTTPS 和以单个 `/` 开头的站内地址。结果标题使用 `hierarchy.lvl1`，没有时使用 `lvl0`。章节名称取最深的非空层级，与文章标题相同时不重复显示。
+
+配置爬虫时，正文选择器可以使用 `.doc-content`，标题层级对应其中的 `h1` 至 `h6`。导航、侧栏和搜索弹窗不应作为正文收录。
+
+### 语言过滤 \{#algolia-language\}
+
+爬虫需要读取页面的 `<html lang>`，将值保存到每条记录的 `lang` 中。索引设置的 `attributesForFaceting` 需要包含 `lang`，允许按语言过滤。已有过滤字段时，在原列表中追加即可。
+
+查询时主题会附加当前页面的语言过滤条件。例如中文页面使用 `lang:zh-CN`，英文页面使用 `lang:en`。字段和值必须与爬虫记录一致，否则搜索可能没有结果。索引配置方法见 [Algolia 过滤字段](https://www.algolia.com/doc/api-reference/api-parameters/attributesForFaceting)。
+
+页面没有语言属性时，主题不添加语言过滤条件。框架与主题输出语言属性的规则见 [多语言文档](./languages.mdx)。
+
+## 隐藏搜索入口 \{#disable-search\}
+
+在根首页中设置：
+
+```yaml
+search: false
+```
+
+此设置只隐藏文档主题的搜索入口。如果整个站点都不需要本地索引，还可以在 `phyllo.config.ts` 中关闭 `search`，避免生成索引文件。
+
+搜索设置完成后，可以继续阅读 [多语言文档](./languages.mdx)。搜索没有结果时，先参考 [搜索异常](../../about/troubleshooting.mdx#search)。需要开发自己的搜索界面时，接口说明见 [为主题添加本地搜索](../search.mdx)。

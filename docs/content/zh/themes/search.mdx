@@ -1,0 +1,133 @@
+# 本地搜索 \{#search\}
+
+Phyllo 提供本地搜索索引和 `useSearch()` 查询函数，主题负责搜索框、结果列表和界面状态。本页介绍如何为主题添加本地搜索。
+
+## 搜索能力从哪来 \{#architecture\}
+
+开启本地搜索后，Phyllo 在构建和预览时生成搜索数据。数据包含标题、章节标题、正文、代码块和页面描述。浏览器通过 `useSearch()` 返回的查询函数读取这些数据。本地搜索不需要额外的账号或服务。
+
+索引来自源文件，不会执行组件来收集文字，组件运行后生成的内容不会进入索引。
+
+## 站点配置 \{#configuration\}
+
+搜索在站点配置 `phyllo.config.ts` 中打开：
+
+```ts
+search: true,
+```
+
+只有 `true` 会生成索引，输出文件为 `/_phyllo/search.json`。不配置时不生成索引，查询返回空结果。字段说明见 [站点配置参考](../reference/configuration.mdx#search)。
+
+## 编写搜索组件 \{#search-component\}
+
+主题通过 `useSearch()` 取得查询函数，自行管理加载状态并渲染界面：
+
+```tsx
+import { type SearchResult, useSearch } from 'phyllo';
+import { useEffect, useState } from 'react';
+
+export default function Search() {
+  const search = useSearch();
+  const [query, setQuery] = useState('');
+  const [attempt, setAttempt] = useState(0);
+  const [state, setState] = useState<{
+    results: SearchResult[];
+    isLoading: boolean;
+    error?: unknown;
+  }>({ results: [], isLoading: false });
+
+  useEffect(() => {
+    const text = query.trim();
+
+    if (!text) {
+      setState({ results: [], isLoading: false });
+      return;
+    }
+    let cancelled = false;
+
+    setState({ results: [], isLoading: true });
+    search(text, { limit: 10 })
+      .then(results => {
+        if (!cancelled) {
+          setState({ results, isLoading: false });
+        }
+      })
+      .catch(error => {
+        if (!cancelled) {
+          setState({ results: [], isLoading: false, error });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [search, query, attempt]);
+
+  return (
+    <search aria-label="站内搜索">
+      <input
+        type="search"
+        aria-label="搜索内容"
+        value={query}
+        onChange={event => setQuery(event.currentTarget.value)}
+      />
+      {state.isLoading && <p role="status">正在搜索…</p>}
+      {state.error !== undefined && (
+        <button type="button" onClick={() => setAttempt(value => value + 1)}>
+          重试
+        </button>
+      )}
+      <ul>
+        {state.results.map(result => (
+          <li key={result.url}>
+            <a href={result.url}>{result.title}</a>
+          </li>
+        ))}
+      </ul>
+    </search>
+  );
+}
+```
+
+示例用清理标记避免旧结果覆盖新结果，并管理加载与失败状态。查询结果为 `SearchResult[]`，每项包含 `url`、`title`、`heading` 和 `snippet`，`terms` 是可用于高亮的纯文本词语。`directory` 选项可以把结果限制在某个内容目录及其子目录，省略时搜索全部内容。
+
+## 接入布局 \{#add-to-layout\}
+
+将上面的组件保存为主题中的 `src/Search.tsx`。下面的 `src/Header.tsx` 引入这个组件，根据站点配置决定是否显示：
+
+```tsx
+import { useSite } from 'phyllo';
+
+import Search from './Search';
+
+export default function Header() {
+  const site = useSite();
+
+  return <header>{site.search && <Search />}</header>;
+}
+```
+
+在布局的 `<body>` 中引入 `<Header />` 即可显示顶栏。上面的搜索组件依赖本地索引，因此只在 `site.search` 为 `true` 时显示。主题如果还提供远程搜索，需要按照所选搜索方式决定入口是否显示。
+
+## 控制查询时机 \{#query-state\}
+
+空字符串查询表示不搜索，查询返回空结果，也不会加载索引。搜索框清空或弹窗关闭时，把查询设回空字符串即可，不需要额外的开关。`useSearch()` 需要始终在组件顶层调用。加载、失败、重试和旧结果失效由主题的界面状态管理。
+
+## 限定搜索范围 \{#scope\}
+
+站点按内容目录划分语言时，把当前语言的目录传给查询函数的 `directory` 选项。结果只包含该目录及其子目录下的页面：
+
+```tsx
+const search = useSearch();
+const results = await search(query, { directory: 'zh' });
+```
+
+`directory` 按目录边界匹配，传入 `zh` 会命中 `zh/guide/x`，不会命中 `zhongwen`。省略时搜索全部内容。
+
+查询函数的完整选项与返回值见 [useSearch 参考](../reference/hooks.mdx#use-search)。
+
+## 使用远程搜索 \{#remote-search\}
+
+Algolia 等服务使用各自的索引和查询接口，主题需要单独接入。使用远程搜索无需开启 Phyllo 的本地搜索，但仍需在主题中配置相应的服务参数。
+
+使用官方文档主题时，无需自行编写搜索组件，配置方法见 [配置搜索](./docs/search.mdx)。

@@ -1,0 +1,160 @@
+# 组织导航 \{#navigation\}
+
+文档主题的导航写在首页文件的 frontmatter 中，字段为 `nav`。每个顶部章节包含自己的侧栏，点击章节会进入该侧栏的第一篇文章。
+
+## 导航从哪里来 \{#source\}
+
+文章本身不需要写导航字段。站点按目录划分语言时，每种语言的首页各有一份导航。页面优先使用所属语言的导航，未设置时使用根首页导航，见 [多语言文档](./languages.mdx)。
+
+导航包含两类条目：
+
+- 顶部章节，使用 `label` 和 `sidebar`，点击后进入侧栏的第一篇文章。
+- 普通链接，使用 `label` 和 `href`，直接跳转到指定地址。
+
+## 添加文章 \{#add-a-page\}
+
+新建文章 `content/installation.mdx` 后，将地址加入侧栏分组：
+
+```md
+---
+nav:
+  - label: 指南
+    sidebar:
+      - label: 入门
+        items:
+          - href: /getting-started
+          - href: /installation
+---
+```
+
+保存后，侧栏按 `items` 的顺序显示文章，上一篇和下一篇也使用该顺序。
+
+## 修改显示名称 \{#labels\}
+
+侧栏默认使用文章标题。需要显示更短的名称时，为条目添加 `label`：
+
+```yaml
+- href: /installation
+  label: 安装
+```
+
+文章标题来自 frontmatter 的 `title`。没有设置时使用正文的第一个一级标题。字段写法见 [页面信息](../../guide/frontmatter.mdx)。
+
+## 侧栏分组 \{#groups\}
+
+一个章节可以包含多个分组，分组使用 `label` 和 `items`：
+
+```yaml
+nav:
+  - label: 指南
+    sidebar:
+      - label: 开始
+        items:
+          - href: /getting-started
+      - label: 环境准备
+        items:
+          - href: /installation
+```
+
+## 子分组 \{#nested-groups\}
+
+分组可以继续嵌套，用于内容较多的章节：
+
+```yaml
+nav:
+  - label: 指南
+    sidebar:
+      - label: 使用指南
+        items:
+          - label: 入门
+            items:
+              - href: /getting-started
+          - label: 安装
+            items:
+              - href: /installation
+```
+
+分组使用 `label` 和 `items`，文章使用 `href` 和可选的 `label`。同一条目不能同时设置 `href` 和 `items`。侧栏默认展开所有分组，嵌套层级通过缩进区分。
+
+正文上方的面包屑按分组层级显示，例如「概览 / 使用指南 / 安装」。分组只影响导航展示，不改变页面地址。
+
+## 顶部章节 \{#sections\}
+
+需要多个顶部章节时，在 `nav` 中并列多个条目：
+
+```yaml
+nav:
+  - label: 指南
+    sidebar:
+      - label: 入门
+        items:
+          - href: /getting-started
+  - label: 参考
+    sidebar:
+      - label: 配置
+        items:
+          - href: /configuration
+```
+
+点击「参考」会进入该章节的第一篇文章，同时切换侧栏。这份列表决定文章属于哪个章节，与文件夹位置无关。一篇文章只能属于一个章节。
+
+## 普通页面链接 \{#page-links\}
+
+常见问题或项目介绍等页面可以直接加入顶栏：
+
+```yaml
+- label: 常见问题
+  href: /about/faq
+```
+
+这类页面没有侧栏和上下篇链接，仍然保留顶栏、正文和右侧大纲。如果链接指向的文章已经加入某个侧栏，它仍然显示原来的侧栏。
+
+## 顶部下拉菜单 \{#dropdowns\}
+
+顶部章节较多时，可以使用 `items` 将它们收进下拉菜单：
+
+```yaml
+nav:
+  - label: 文档
+    items:
+      - label: 指南
+        sidebar:
+          - label: 入门
+            items:
+              - href: /getting-started
+      - label: 常见问题
+        href: /about/faq
+```
+
+下拉菜单只支持一层，顶部条目从 `href`、`sidebar` 和 `items` 中选择一个。下拉项使用 `href` 或 `sidebar`。
+
+## 外部入口 \{#links\}
+
+仓库或社区入口统一写在根首页 `content/index.mdx` 的 `links` 中，所有语言共用：
+
+```yaml
+links:
+  - icon: github
+    href: https://github.com/your-name/your-project
+```
+
+链接在顶栏显示为图标，使用 `icon` 指定名称，`href` 指定地址，不需要 `label`。可用的图标：
+
+- 代码托管与包管理：`github`、`gitlab`、`gitee`、`npm`
+- 社区与联系：`discord`、`slack`、`telegram`、`qq`、`email`
+- 媒体与订阅：`x`、`bluesky`、`youtube`、`bilibili`、`rss`
+
+## 导航校验 \{#validation\}
+
+侧栏文章的 `href` 必须是站内页面地址，除 `/` 外不带尾斜杠。对应的页面必须存在。导航按链接组织文章，不限制文章所属的目录或语言。
+
+以下情况会导致构建失败：
+
+- 章节、分组或下拉菜单为空。
+- 侧栏的页面地址不存在。
+- 同一篇文章出现在两个章节中。
+- 分组缺少 `label` 或 `items`。
+
+未加入任何章节的文章仍然可以访问和搜索，只是没有侧栏和上下篇链接。
+
+导航设置完成后，可以继续阅读 [自定义首页](./homepage.mdx)。

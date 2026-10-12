@@ -1,0 +1,67 @@
+# 修改配色 \{#colors\}
+
+保留现有布局、只调整配色时，可以在自定义样式表中覆盖主题的 CSS 变量。
+
+## 覆盖主题色 \{#accent-color\}
+
+在 `public/custom.css` 中设置主题色：
+
+```css
+:root {
+  --accent-color: #7c3aed;
+}
+```
+
+样式表通过站点配置的 `head.link` 加载。已有 `link` 数组时，向其中添加样式表条目：
+
+```ts
+head: {
+  link: [
+    { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+    { rel: 'stylesheet', href: '/custom.css' },
+  ],
+},
+```
+
+自定义样式在主题样式之后加载，因此可以覆盖主题变量。保存后，链接、选中项和首页入口会使用新的颜色。
+
+## 颜色变量 \{#variables\}
+
+文档主题提供以下颜色变量：
+
+| 变量                        | 用途                                 |
+| --------------------------- | ------------------------------------ |
+| `--docs-background`         | 页面背景                             |
+| `--docs-surface`            | 行内代码、表头和禁用按钮的背景       |
+| `--docs-surface-raised`     | 下拉菜单、搜索弹窗和移动端目录的背景 |
+| `--docs-code-background`    | 代码块背景                           |
+| `--docs-text`               | 正文颜色                             |
+| `--docs-text-strong`        | 标题和强调文字的颜色                 |
+| `--docs-text-muted`         | 说明文字和辅助信息的颜色             |
+| `--docs-border`             | 边框和分隔线颜色                     |
+| `--docs-control-background` | 次按钮背景及导航项的悬停背景         |
+| `--docs-control-hover`      | 次按钮悬停时的背景                   |
+| `--docs-control-active`     | 次按钮按下时的背景                   |
+| `--docs-accent`             | 链接、选中项文字和焦点轮廓的颜色     |
+| `--docs-accent-background`  | 选中项和搜索关键词的背景             |
+| `--docs-on-accent`          | 主按钮的文字和图标颜色               |
+| `--docs-backdrop`           | 搜索弹窗的遮罩颜色                   |
+
+侧栏分组标题和表头使用 `--docs-text-strong`，未选中的导航使用 `--docs-text-muted`。
+
+## 亮色与暗色 \{#color-modes\}
+
+亮色和暗色模式共用同一组变量，`light-dark()` 的第一个值用于亮色，第二个值用于暗色：
+
+```css
+:root {
+  --docs-control-background: light-dark(#e6eaf0, #293341);
+  --docs-control-hover: light-dark(#dce2ea, #344154);
+}
+```
+
+链接、选中项和主入口的交互颜色默认取自 `--accent-color`。修改后需要检查两种模式下的文字对比度，还要检查悬停、按下和键盘聚焦时的效果。
+
+只调整颜色和少量样式时，覆盖 CSS 变量改动最小，也便于跟随主题更新。需要修改页面结构或加入自己的组件时，应改用 [自定义主题](../customization.mdx)。
+
+配色调整完成后，可以继续阅读 [配置搜索](./search.mdx)。

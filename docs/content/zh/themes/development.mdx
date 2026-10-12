@@ -1,0 +1,174 @@
+# 编写主题 \{#theme-development\}
+
+主题是一个 React 组件包，默认导出一个布局组件，决定页面的结构。本页从命令行工具生成的模板开始，编写一个可以列出文章并显示正文的布局。
+
+基于现有主题定制的步骤见 [自定义主题](./customization.mdx)。示例需要 TypeScript 和 React 基础。
+
+## 主题的形态 \{#structure\}
+
+主题是一个 npm 包，通过 `package.json` 的 `name` 声明包名，`exports` 指向入口文件。入口默认导出布局组件，Phyllo 渲染它生成页面。
+
+主题只依赖 `phyllo` 和 `react`，不依赖构建工具和命令行工具。
+
+## 创建主题包 \{#create-the-package\}
+
+在站点目录运行：
+
+```sh
+phyllo theme themes/my-theme --package phyllo-theme-local
+```
+
+命令只创建源码文件，不会切换站点主题。生成的目录如下：
+
+```text
+themes/my-theme/
+├── src/
+│   └── index.tsx
+├── package.json
+└── tsconfig.json
+```
+
+## 编写布局 \{#layout\}
+
+布局是返回页面结构的 React 组件。它通过 `children` 接收当前页面的正文，通过 Hook 读取站点数据：
+
+- `useSite()` 读取站点名称、描述和 HTML 语言。
+- `usePage()` 读取当前页面信息。
+- `usePages()` 读取文章列表，不加载正文。
+
+`themes/my-theme/src/index.tsx` 可以写成：
+
+```tsx
+import { HeadResources, usePage, usePages, useSite } from 'phyllo';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children?: ReactNode }) {
+  const site = useSite();
+  const page = usePage();
+  const pages = usePages().filter(article => article.hasContent);
+  const description = page.description ?? site.description;
+
+  return (
+    <html lang={site.lang ?? 'en'}>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <HeadResources />
+        <title>{page.title}</title>
+        {description !== undefined && (
+          <meta name="description" content={description} />
+        )}
+      </head>
+      <body>
+        <header>{site.title}</header>
+        <main>
+          {page.hasContent ? (
+            children
+          ) : (
+            <ul>
+              {pages.map(article => (
+                <li key={article.url}>
+                  <a href={article.url}>{article.title}</a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </main>
+      </body>
+    </html>
+  );
+}
+```
+
+`children` 是当前页面的正文，`page.hasContent` 表示页面是否包含正文。示例在文章页显示正文，在没有正文的首页列出文章。
+
+主题是普通的 React 组件，可以返回完整 HTML、局部 JSX 或 `null`。Phyllo 渲染组件的返回值，不要求特定标签，也不额外包裹文档结构。浏览器在解析 HTML 时会处理省略的文档标签，返回 `null` 时页面没有主题内容。
+
+示例显式编写了 `<html>`、`<head>` 和 `<body>`，便于设置页面属性和元信息。`HeadResources` 输出主题样式、页面数据、客户端脚本和头部配置中的标签，渲染 `<html>` 或 `<head>` 的主题必须在 `<head>` 中渲染它。返回局部片段或空内容、没有 `<head>` 的主题，Phyllo 会在内容前输出这些资源，浏览器会将它们解析到 `<head>` 中。
+
+主题输出页面标题和描述，`page` 和 `site` 中的值可以直接使用。`site.lang`、`site.title` 和 `site.description` 来自站点配置，在主题没有定义对应值时作为默认值。
+
+## 在站点中启用 \{#connect-to-the-site\}
+
+将主题加入站点依赖：
+
+```json
+{
+  "dependencies": {
+    "phyllo-theme-local": "workspace:*"
+  }
+}
+```
+
+运行 `bun install`，再将站点配置的 `theme` 改为主题包名：
+
+```ts
+theme: 'phyllo-theme-local',
+```
+
+启动预览后，首页显示站点名称和文章列表，点击标题进入正文。
+
+## 样式与交互 \{#styles-and-interaction\}
+
+主题样式写在 `themes/my-theme/src/style.css` 中，在布局入口通过 `import` 引入：
+
+```ts
+import './style.css';
+```
+
+`phyllo/client` 提供 CSS 导入的类型。生成的 `tsconfig.json` 已声明。修改 TypeScript 配置时需要保留。
+
+图片等资源也可以导入，导入结果是带内容哈希的地址：
+
+```tsx
+import logo from './logo.svg';
+
+<img src={logo} alt="Logo" />;
+```
+
+资源类型同样由 `phyllo/client` 提供，服务端渲染、构建产物和开发客户端使用同一个地址。图片导入由 Phyllo 接管，`with { type: 'text' }` 之类的显式 loader 不适用于图片扩展名。
+
+主题的 `package.json` 也可以定义 `#` 开头的 `imports` 别名。别名指向代码或 MDX 时，条件分支按运行目标选择。别名指向图片时要保留图片扩展名，并且不要在别名上配置条件分支，图片导入统一按 Bun 运行环境解析，服务端渲染、开发客户端和构建产物都会取 `bun` 分支。
+
+Markdown 生成的段落、标题和列表都是普通 HTML 元素。可以通过 CSS 设置样式。代码块已经完成语法高亮，主题可以调整背景、边距和排版。
+
+主题中的交互组件与 MDX 组件写法相同。组件也会在构建时执行。访问浏览器对象的代码需要放在事件回调或 `useEffect` 中。详见 [浏览器中的代码](../guide/writing.mdx#browser-code)。
+
+开发模式下，修改 MDX、其引用的资源或编译配置，都可能使模块中的组件重新挂载并重置内部状态。需要跨更新保留状态时，可以将组件放在独立的 TSX 文件中。
+
+开发服务按主题的真实源码路径监听更新。工作区主题和本地主题的源码不在 `node_modules` 中，修改后页面会更新。安装在 `node_modules` 中的主题不支持运行中源码热更新，修改或升级后需要重启开发服务。
+
+## MDX 模块类型 \{#mdx-module-types\}
+
+生成的 `.phyllo/mdx.d.ts` 为所有 `.mdx` 文件声明 `frontmatter` 命名导出，类型来自 `phyllo/types`，不依赖 UI 框架。在 TSX 中导入 MDX 组件时，还需要组件类型。安装 `@types/mdx`，把 `mdx` 加入 `tsconfig.json` 的 `types`，并补一份框架对应的模块增强声明。新生成的站点已包含这些配置，已有站点或独立主题需要自行添加。
+
+React 19 的类型不再提供全局 `JSX` 命名空间，而 `@types/mdx` 仍引用它。React 项目添加：
+
+```ts
+// mdx-jsx.d.ts
+import * as React from 'react';
+
+declare module 'mdx/types.js' {
+  export import JSX = React.JSX;
+}
+```
+
+`@types/mdx` 还声明了 `*.md`、`*.markdown`、`*.mdown`、`*.mkdn`、`*.mkd`、`*.mkdown`、`*.ron`。这些扩展名在 TypeScript 中可导入，不代表 Phyllo 会编译它们。`.md` 按 Markdown 编译，没有正文表达式和 frontmatter 导出。
+
+## 内容组件 \{#content-components\}
+
+除了默认导出的布局，主题还可以导出具名组件，供文章通过 MDX 导入：
+
+```tsx
+export function Callout({ children }: { children?: ReactNode }) {
+  return <aside className="callout">{children}</aside>;
+}
+```
+
+文章导入后即可使用，主题负责这些组件的样式和使用说明。
+
+## 头部标签 \{#head-tags\}
+
+主题输出的图标或脚本标签会保留，站点配置 `head` 中的标签直接追加。两者同时输出，Phyllo 不合并、不去重。规则见 [头部标签追加规则](../reference/configuration.mdx#head-appending)。
+
+Hook 的完整字段见 [Hooks 参考](../reference/hooks.mdx)。
