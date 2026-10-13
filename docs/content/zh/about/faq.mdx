@@ -1,0 +1,148 @@
+# 常见问题 \{#faq\}
+
+## 为什么选择 Bun \{#why-bun\}
+
+Phyllo 只支持 [Bun](https://bun.com/docs) 运行时，不提供 Node.js 的运行方案。
+
+Bun 和 Node.js 都是 JavaScript 运行时。区别在于 Bun 内置了开发与构建所需的全部工具。Node.js 项目需要为每个环节单独选择工具：
+
+| 环节             | Node.js 项目的常见选择              | Bun                      |
+| ---------------- | ----------------------------------- | ------------------------ |
+| 包管理器         | npm、Yarn 或 pnpm                   | `bun install`            |
+| 执行 TypeScript  | tsx、ts-node 或构建工具中的转译配置 | 直接运行 TypeScript 源码 |
+| 打包与开发服务器 | Vite、esbuild 或 webpack            | `Bun.build`、`Bun.serve` |
+| 测试             | Jest、Vitest 或 `node:test`         | `bun test`               |
+
+使用 Bun 时，以上能力来自同一个运行时。项目不需要分别维护这些工具的版本和配置。Phyllo 直接运行 TypeScript 源码。构建和开发服务都使用 Bun 自带的 API。整个过程不需要 Node.js 进程。
+
+同时兼容两种运行时，需要为每个依赖和 API 分别验证。这部分成本会转移到框架维护上。Phyllo 只支持 Bun，把维护工作集中在框架功能本身。
+
+## 为什么选择 MDX \{#why-mdx\}
+
+README、使用指南和技术文章常用 Markdown 编写。它语法简洁，源文件便于阅读，因此适合作为站点的内容格式。
+
+实际写作常常需要基础语法之外的内容，例如用提示框标出安装前的注意事项。Markdown 没有提示框语法，各工具便通过扩展来实现。
+
+### 扩展语法的差异 \{#markdown-extensions\}
+
+同一个提示框，不同工具的写法并不一致。
+
+[VitePress 的自定义容器](https://vitepress.dev/guide/markdown#custom-containers) 使用 `:::` 标记：
+
+```md
+::: tip
+Ciallo～(∠·ω< )⌒★
+:::
+```
+
+[Material for MkDocs 的提示框](https://squidfunk.github.io/mkdocs-material/reference/admonitions/) 使用 `!!!` 标记，并要求缩进正文：
+
+```md
+!!! tip
+
+    Ciallo～(∠·ω< )⌒★
+```
+
+[GitHub Alerts](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts) 在引用块中声明提示类型：
+
+```md
+> [!TIP]
+> Ciallo～(∠·ω< )⌒★
+```
+
+提示框的标记和缩进规则各不相同。每种写法都需要单独记忆，更换工具后还要确认是否仍然有效。
+
+部分工具会兼容其他工具的扩展。例如 [VitePress 支持 GitHub Alerts](https://vitepress.dev/guide/markdown#github-flavored-alerts)。这些语法并非所有 Markdown 工具都支持。迁移到缺少相应扩展的工具时，提示框无法按预期显示，需要改写内容或安装插件。
+
+### Markdown 中的框架代码 \{#framework-code\}
+
+提示框之外，一些站点框架还允许在 Markdown 里直接写 [Vue](https://vuejs.org/) 代码。[Valaxy](https://valaxy.site/guide/markdown#using-vue-in-markdown) 和 [Docsify](https://docsify.js.org/#/vue) 都支持这种写法，用来添加文章中的交互。比如给一段命令加上复制按钮，整套代码都要写进文章：
+
+```md
+<script setup>
+  const command = 'bun add phyllo';
+
+  function copy() {
+    navigator.clipboard.writeText(command);
+  }
+</script>
+
+<div class="shell">
+  <code>{{ command }}</code>
+  <button type="button" @click="copy">Copy</button>
+</div>
+```
+
+文件仍以 `.md` 结尾，内容却同时包含 Markdown 与 Vue 语法。编辑器按 Markdown 文件处理它。其中的 Vue 代码没有语法高亮，也没有补全和类型提示。格式化工具同样无法整理排版。维护这些代码需要理解脚本声明和事件指令，普通 Markdown 工具也无法运行它们。
+
+### Markdown 与 JSX 的结合 \{#markdown-and-jsx\}
+
+Phyllo 使用 [MDX](https://mdxjs.com/docs/what-is-mdx/) 编写包含组件的文章。MDX 把 Markdown 与 JSX 结合，使用 `.mdx` 扩展名。纯文字内容可以使用 `.md`，需要 JSX 时使用 `.mdx`，扩展名对应文件采用的语法。
+
+同样的命令行块，在 MDX 中直接写成组件：
+
+```mdx
+export function Shell({ command }) {
+  return (
+    <div className="shell">
+      <code>{command}</code>
+      <button
+        type="button"
+        onClick={() => navigator.clipboard.writeText(command)}
+      >
+        Copy
+      </button>
+    </div>
+  );
+}
+
+<Shell command="bun add phyllo" />
+```
+
+JSX 使用类似 HTML 的标签描述界面。Markdown 本身支持嵌入 HTML，JSX 的写法与之相近。JSX 同时支持表达式与组件，既能展示静态内容，也能添加交互。
+
+回到提示框：文档主题提供的 [提示框组件](../themes/docs/index.mdx#content-components) 与这些语法使用相同的类型名。迁移时不用重新记一套标记，例如：
+
+- VitePress 的 `::: warning` 对应 `type="warning"`。
+- Material 的 `!!! note` 对应 `type="note"`。
+- GitHub 的 `[!TIP]` 对应 `type="tip"`。
+
+```mdx
+import { Callout } from 'phyllo-theme-docs';
+
+<Callout type="tip">Ciallo～(∠·ω< )⌒★</Callout>
+```
+
+`import` 声明组件的来源，`type` 决定提示框的配色和默认标题。需要自定义标题时再加 `title`。使用其他组件时沿用同一套导入、标签与属性写法。使用时只需要了解组件的用途和属性，不必再记忆一套 Markdown 标记。逻辑较复杂时可以写成独立的组件文件，文章通过标签引用。
+
+MDX 的语法约定与站点框架无关。更换框架时，组件及其依赖需要按新框架调整。Markdown 与 JSX 的书写方式可以保留。
+
+## 为什么选择 React \{#why-react\}
+
+我们都知道，JSX 本质上是 JavaScript 的语法扩展，其编译后只是普通的函数调用。例如下面这段 JSX 代码：
+
+```jsx
+<span className="message">hello world</span>
+```
+
+编译结果如下：
+
+```js
+import { jsx as _jsx } from 'react/jsx-runtime';
+
+_jsx('span', { className: 'message', children: 'hello world' });
+```
+
+而其中的 `_jsx` 就是 JSX 运行时提供的函数，它负责将参数转换为对应的 JavaScript 对象。
+
+MDX 将 Markdown 与 JSX 结合，编译结果同样是这样的函数调用，交给 JSX 运行时执行。所以运行时不限于 React 一种，理论上 MDX 可以接入任意 JSX 运行时。
+
+JSX 由 React 发明，后来被多个知名项目使用或支持，例如 [Astro](https://astro.build/)、[Hono](https://hono.dev/) 和 [Solid](https://www.solidjs.com/) 等，这些项目各有侧重，Phyllo 最终选择了 React。
+
+React 的使用者最多，组件、教程和问答也最丰富，遇到问题更容易找到答案。许多静态站点生成器，例如 [Docusaurus](https://docusaurus.io/) 和 [Gatsby](https://www.gatsbyjs.com/)，同样基于 React。熟悉其他 JSX 运行时的开发者读 React 代码没有障碍，反过来从 React 转向 Solid 这类项目，还需要适应它们的更新模型。选择使用者最多的一套方案，维护主题和组件的成本更低。
+
+Phyllo 负责服务端渲染和浏览器接管，主题就是普通的 React 组件包，文章组件与主题组件使用同一种写法。类型提示和编辑器补全来自 React 的类型定义。
+
+运行时的更新机制不是 React 的强项，Solid 这类细粒度更新方案性能更好。Phyllo 的产物是构建时渲染的静态 HTML，浏览器加载的脚本体积固定，与内容多少无关，对静态站点来说，生态和上手难度更重要。同时支持多套运行时，需要为每个集成分别验证，这部分成本会转移到框架维护上。Phyllo 只支持 React，把维护工作集中在框架功能本身。
+
+遇到具体的报错或异常时，见 [故障排查](./troubleshooting.mdx)。

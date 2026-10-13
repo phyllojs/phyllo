@@ -1,0 +1,120 @@
+# 故障排查 \{#troubleshooting\}
+
+构建或预览出错时，先看终端输出的报错原文。本页按报错原因、常见现象和提问方式整理排查顺序。问题不在其中时，可以在 [仓库](https://github.com/xueelf/phyllo/issues) 中提交 Issue。
+
+## 构建报错 \{#build-errors\}
+
+终端会指出报错涉及的文件和字段。下面按报错原文说明原因和处理方式。
+
+### 找不到配置文件 \{#missing-config\}
+
+终端提示 `Missing /path/to/site/phyllo.config.ts. Run phyllo init first.` 时，当前目录不是站点根目录或尚未初始化。消息中的路径是命令实际查找的位置，切换到包含 `phyllo.config.ts` 的目录，或者运行 `phyllo init`。
+
+### 组件没有导入 \{#missing-import\}
+
+终端提示 `Expected component ... to be defined: you likely forgot to import, pass, or provide it.` 时，文章里使用了没有导入的组件。在文件顶部补上 `import` 语句，写法见 [文章写作](../guide/writing.mdx#components)。
+
+### 主题没有安装 \{#theme-not-found\}
+
+终端提示 `Cannot resolve theme "xxx". Install it in the site's package.json.` 时，`theme` 填写的包名没有安装。核对包名，并在站点目录运行 `bun install`。
+
+### 页面地址冲突 \{#route-conflict\}
+
+终端提示 `Duplicate content route /guide: guide.md and guide.mdx` 时，两个源文件生成了同一个地址，例如 `guide.md` 与 `guide.mdx`，或 `guide.mdx` 与 `guide/index.mdx`。消息中列出冲突地址和涉及的源文件，删除其中一个文件或修改文件名。
+
+### 侧栏链接无效 \{#link-not-found\}
+
+终端提示 `Sidebar article not found: /xxx` 时，侧栏条目指向了不存在的页面。核对首页 frontmatter 中的 `href`，或者补上对应页面。普通 `nav.href` 链接只校验地址形式，不检查页面是否存在。
+
+### 语言字段缺失或重复 \{#locale-fields\}
+
+终端提示 `Locale /xxx/ requires lang and label.` 或 `Duplicate locale language: zh-CN.` 时，`locales` 的条目缺少 `lang` 或 `label`，或者两种语言用了同一个语言标签。补上字段，并保证标签不重复。
+
+### 语言标签无效 \{#invalid-lang\}
+
+终端提示 `Invalid language tag: xxx.` 时，`lang` 不是合法的语言标签。改成 `zh-CN`、`en` 这类写法。
+
+### 锚点重复 \{#duplicate-anchor\}
+
+终端提示 `Duplicate anchor #xxx in /url` 时，同一页面出现两个相同的锚点。修改其中一个 `\{#anchor\}`。
+
+### 重定向地址无效 \{#invalid-redirect\}
+
+终端提示 `Invalid redirect route: /x/. Use / or an encoded /directory URL without a trailing slash.` 时，重定向的源地址写法有误。除根路径 `/` 外，地址以 `/` 开头、不带尾斜杠。
+
+### 重定向目标不存在 \{#redirect-target\}
+
+终端提示 `Redirect destination does not exist: /x` 时，重定向的目标页面不存在。补上页面文件，或者修改目标地址。
+
+### 重定向循环 \{#redirect-cycle\}
+
+终端提示 `Redirect cycle starting at /x.` 时，重定向规则互相指向，形成循环。检查 `redirects` 中的规则链。
+
+### 链接或资源缺失 \{#broken-links\}
+
+终端提示 `Invalid content link: filePath: url` 或 `Cannot find asset: filePath: url` 时，链接或图片指向不存在的文件。核对相对路径，移动文章时把资源一起移动。
+
+### 构建输入位于输出目录内 \{#input-in-outdir\}
+
+终端提示 `Build input must not be inside the output directory: /path` 时，导入的文件位于输出目录内，构建清理输出目录时会删除它，因此直接报错。把源文件移出输出目录，或者修改站点配置中的 `outdir`。
+
+### 输出目录重叠 \{#outdir-overlap\}
+
+终端提示 `outdir must not overlap content sources.` 或 `outdir must not overlap the theme package.` 时，输出目录与站点内的内容来源或主题包重叠。修改 `outdir`，让它与内容目录、主题目录和依赖目录分开。
+
+### 输出路径冲突 \{#output-conflict\}
+
+终端提示 `Output paths conflict: a.html and a.html/b.html` 或 `Output paths conflict on this filesystem: A.html` 时，两个产物指向同一个文件，或者文件系统不区分大小写导致路径重合，例如 `a.html` 与 `A.html`。修改其中一个页面或重定向的地址。校验失败时不会清理已有的输出目录。
+
+### 内容目录链接重复 \{#duplicate-directory\}
+
+终端提示 `Content directory is reachable through multiple paths: a and b.` 时，同一个真实目录通过多个符号链接出现在内容目录中。消息中列出两条逻辑路径，删除多余的链接，让每个真实目录只保留一个逻辑路径。
+
+### frontmatter 格式错误 \{#invalid-frontmatter\}
+
+终端提示 `Frontmatter must be an object: filePath` 时，frontmatter 的写法有误。字段采用 `字段: 值` 的形式，字符串值需要加引号。
+
+### 布局取值无效 \{#invalid-layout\}
+
+终端提示 `Invalid layout for /url: xxx` 时，`layout` 的值不在主题支持的范围内。可用的值见 [页面布局](../themes/docs/layout.mdx)。
+
+### 保留路由被占用 \{#reserved-route\}
+
+终端提示 `The /_phyllo/ route is reserved for build resources.` 时，内容使用了 `/_phyllo/` 开头的地址。这个前缀留给构建资源，换一个目录名。
+
+其他报错按终端提示定位。导航和语言的规则见 [组织导航](../themes/docs/navigation.mdx) 和 [多语言文档](../themes/docs/languages.mdx)。
+
+## 预览异常 \{#preview\}
+
+- 端口被占用：使用 `phyllo dev --port 3002` 指定其他端口。
+- 图片显示 404：检查相对路径是否正确，文件是否放在内容目录或 `public/` 中。
+- 样式没有生效：确认样式表通过 `head.link` 引入，或者已经写在主题的入口文件里。
+- 保存后没有更新：确认预览仍在运行，并查看终端是否有报错。
+- 页面显示错误：按终端提示修正文件，预览会自动重建并恢复。
+
+## 搜索异常 \{#search\}
+
+- 搜不到内容：索引只收集源文件中的文字，组件运行时生成的内容不会进入索引。
+- 本地结果混入其他语言：检查根首页的 `locales` 范围。自定义主题需要将内容目录传给查询函数的 `directory` 选项。
+- Algolia 没有结果：检查根首页的 `search.options`，确认索引已更新。记录中的 `lang` 需要与页面一致，索引还需允许按该字段过滤。
+- 发布后搜索失效：确认上传了完整的 `dist/`，本地索引随构建产物一起部署。
+
+文档主题的配置方法见 [配置搜索](../themes/docs/search.mdx)，自定义主题的接口用法见 [本地搜索](../themes/search.mdx)。
+
+## 部署异常 \{#deployment\}
+
+- 首页正常但文章 404：托管服务未启用无扩展名地址，需要把 `/path` 解析为 `/path.html`。
+- 部署到子路径后资源丢失：站点需要部署到域名根路径。
+- 图片缺失：确认上传了完整的 `dist/`，并且图片引用的是构建后的地址。
+- 交互失效：确认页面脚本正常加载，浏览器控制台没有报错。
+
+托管要求和检查清单见 [部署](../guide/deployment.mdx)。
+
+## 获取帮助 \{#help\}
+
+提交 Issue 时，附上以下信息可以更快定位问题：
+
+- Phyllo 和 Bun 的版本，可通过 `phyllo --version` 和 `bun --version` 查看。
+- 复现问题的步骤和涉及的配置或 frontmatter。
+- 完整的报错信息，包括终端输出的文件路径。
+- 如果能做一个最小复现项目，一并附上。
