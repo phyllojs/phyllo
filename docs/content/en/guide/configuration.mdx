@@ -1,0 +1,90 @@
+# Site configuration \{#configuration\}
+
+`phyllo.config.ts` holds the shared settings for the site, including the theme, title, description, and HTML language. The directory that contains this file is the site root.
+
+## Config file \{#config-file\}
+
+Using the local theme created in the quick start, the configuration looks like this:
+
+```ts
+import { defineConfig } from '@phyllo/core';
+
+export default defineConfig({
+  theme: 'phyllo-theme-my-theme',
+  title: 'My site',
+  description: 'Installation steps and usage examples for the project.',
+  lang: 'en-US',
+});
+```
+
+When you change settings, keep the `import` line and `export default defineConfig(...)`, and edit only the fields inside the braces. The field name is to the left of the colon, and the value is to the right. Titles, descriptions, and package names go inside quotes, and fields are separated by commas.
+
+`defineConfig()` provides editor hints for the fields. Save the configuration while the dev server is running, and the browser refreshes automatically. If a field is wrong, the terminal points out the file and field name, and you can fix it as suggested.
+
+`package.json`, `bun.lock`, and `tsconfig.json` manage dependencies and types, and you do not need to edit them while writing.
+
+## Site title and description \{#metadata\}
+
+`title` is the site title, and `description` is the default description for the site. Themes read them through `useSite()`. The theme renders the page title and description. When the theme does not define the corresponding values, these two fields from the site configuration are used.
+
+Articles can also set these two fields at the top of their own file. For the rules on which value wins, see [Page metadata](./frontmatter.mdx).
+
+## Choosing a theme \{#theme\}
+
+`theme` takes the package name of an installed theme. The example above refers to the local theme in `themes/my-theme/`. If you used a different theme name when creating the project, keep the package name that was generated.
+
+To switch themes, install the new theme first. For the steps, see [Installing and using themes](../themes/installation.mdx). Each theme defines its own display settings, such as the navigation and the homepage.
+
+## HTML language \{#lang\}
+
+`lang` provides the default value for the page's `<html lang>` attribute, for example:
+
+```ts
+lang: 'en-US',
+```
+
+The field only accepts a string, and it must be a valid language tag. Themes read it through `useSite().lang` and use it as the default for `<html lang>`. If the theme already defines a language, the theme wins. If the whole site uses one language, set it here. For a multilingual site, the theme outputs the language attribute for each content scope.
+
+Browsers use `<html lang>` to learn the language of a page. This field does not take part in routing. When your content uses multiple languages, the theme decides each page's language and how readers switch between them.
+
+## Redirects \{#redirects\}
+
+`redirects` points one page URL to another:
+
+```ts
+redirects: {
+  '/': '/en',
+},
+```
+
+Both the source and the target are page URLs within the site. They start with `/` and have no trailing slash except for the root path. Rules do not support external links, wildcards, query parameters, or anchors, and the target page must exist. The dev server returns a 302, and the build output is a redirect page with `meta refresh`.
+
+For the full rules and error cases, see [Site configuration reference](../reference/configuration.mdx#redirects).
+
+## Local search \{#search\}
+
+Turn on the search index when a theme needs to query local content through Phyllo:
+
+```ts
+search: true,
+```
+
+When enabled, the build generates a local search index, and themes read it through the query function from `useSearch()`. When it is not configured, the value is `false`, no index is generated, and queries return no results.
+
+This switch does not control remote search integrated by a theme. When you use a service such as Algolia, configure the service parameters as described by the theme and leave local search off. For the field description, see [Site configuration reference](../reference/configuration.mdx#search).
+
+## Head tags \{#head\}
+
+`head` appends tags to the page head, such as a favicon and a custom stylesheet:
+
+```ts
+head: {
+  link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+},
+```
+
+The file in the example lives in `public/`, so its URL is `/favicon.svg`. You can also use external URLs in the configuration. For the supported tag types and the append rules, see [Site configuration reference](../reference/configuration.mdx#head).
+
+## Next steps \{#next-steps\}
+
+Once the site information is set up, you can start writing articles. To learn how files map to pages, see [Pages and routing](./routing.mdx). For how to write content, see [Writing articles](./writing.mdx).

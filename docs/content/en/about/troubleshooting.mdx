@@ -1,0 +1,120 @@
+# Troubleshooting \{#troubleshooting\}
+
+When a build or preview fails, read the error text in the terminal first. This page organizes the checks by error cause, common symptoms, and how to ask for help. If your problem is not covered, open an issue in the [repository](https://github.com/xueelf/phyllo/issues).
+
+## Build errors \{#build-errors\}
+
+The terminal points out the file and field involved. Each entry below quotes the error text and explains the cause and the fix.
+
+### Config file not found \{#missing-config\}
+
+When the terminal shows `Missing /path/to/site/phyllo.config.ts. Run phyllo init first.`, the current directory is not the site root or the site is not initialized yet. The path in the message is where the command actually looked. Switch to the directory that contains `phyllo.config.ts`, or run `phyllo init`.
+
+### Component not imported \{#missing-import\}
+
+When the terminal shows `Expected component ... to be defined: you likely forgot to import, pass, or provide it.`, the article uses a component that was not imported. Add the `import` statement at the top of the file. For the syntax, see [Writing articles](../guide/writing.mdx#components).
+
+### Theme not installed \{#theme-not-found\}
+
+When the terminal shows `Cannot resolve theme "xxx". Install it in the site's package.json.`, the package name in `theme` is not installed. Check the package name and run `bun install` in the site directory.
+
+### Conflicting page URLs \{#route-conflict\}
+
+When the terminal shows `Duplicate content route /guide: guide.md and guide.mdx`, two source files produce the same URL, for example `guide.md` and `guide.mdx`, or `guide.mdx` and `guide/index.mdx`. The message lists the conflicting URL and the source files involved. Delete one of the files or rename it.
+
+### Invalid sidebar link \{#link-not-found\}
+
+When the terminal shows `Sidebar article not found: /xxx`, a sidebar entry points to a page that does not exist. Check the `href` in the home page frontmatter, or add the missing page. Plain `nav.href` links are only checked for URL shape, not for whether the page exists.
+
+### Missing or duplicate locale fields \{#locale-fields\}
+
+When the terminal shows `Locale /xxx/ requires lang and label.` or `Duplicate locale language: zh-CN.`, a `locales` entry is missing `lang` or `label`, or two languages use the same language tag. Add the missing fields and make sure the tags are unique.
+
+### Invalid language tag \{#invalid-lang\}
+
+When the terminal shows `Invalid language tag: xxx.`, `lang` is not a valid language tag. Use a form such as `en-US` or `en`.
+
+### Duplicate anchor \{#duplicate-anchor\}
+
+When the terminal shows `Duplicate anchor #xxx in /url`, two anchors on the same page are identical. Change one of the `\{#anchor\}` values.
+
+### Invalid redirect source \{#invalid-redirect\}
+
+When the terminal shows `Invalid redirect route: /x/. Use / or an encoded /directory URL without a trailing slash.`, the redirect source URL is malformed. Except for the root path `/`, URLs start with `/` and have no trailing slash.
+
+### Missing redirect target \{#redirect-target\}
+
+When the terminal shows `Redirect destination does not exist: /x`, the redirect target page does not exist. Add the page file or change the target URL.
+
+### Redirect cycle \{#redirect-cycle\}
+
+When the terminal shows `Redirect cycle starting at /x.`, the redirect rules point to each other in a cycle. Check the chain of rules in `redirects`.
+
+### Broken link or missing asset \{#broken-links\}
+
+When the terminal shows `Invalid content link: filePath: url` or `Cannot find asset: filePath: url`, a link or image points to a file that does not exist. Check the relative path, and move assets along with articles.
+
+### Build input inside the output directory \{#input-in-outdir\}
+
+When the terminal shows `Build input must not be inside the output directory: /path`, an imported file is inside the output directory, and the build deletes it when it cleans that directory, so the build fails instead. Move the source file out of the output directory, or change `outdir` in the site configuration.
+
+### Overlapping output directory \{#outdir-overlap\}
+
+When the terminal shows `outdir must not overlap content sources.` or `outdir must not overlap the theme package.`, the output directory overlaps with content sources or the theme package inside the site. Change `outdir` so it stays separate from the content, theme, and dependency directories.
+
+### Conflicting output paths \{#output-conflict\}
+
+When the terminal shows `Output paths conflict: a.html and a.html/b.html` or `Output paths conflict on this filesystem: A.html`, two outputs point to the same file, or the filesystem is case-insensitive and the paths collide, for example `a.html` and `A.html`. Change the URL of one page or redirect. When validation fails, the existing output directory is not cleaned.
+
+### Duplicate content directory links \{#duplicate-directory\}
+
+When the terminal shows `Content directory is reachable through multiple paths: a and b.`, the same real directory appears in the content directory through more than one symbolic link. The message lists the two logical paths. Remove the extra link so each real directory has a single logical path.
+
+### Invalid frontmatter \{#invalid-frontmatter\}
+
+When the terminal shows `Frontmatter must be an object: filePath`, the frontmatter syntax is wrong. Fields use the `field: value` form, and string values need quotes.
+
+### Invalid layout value \{#invalid-layout\}
+
+When the terminal shows `Invalid layout for /url: xxx`, the `layout` value is not one the theme supports. For the available values, see [Page layouts](../themes/docs/layout.mdx).
+
+### Reserved route in use \{#reserved-route\}
+
+When the terminal shows `The /_phyllo/ route is reserved for build resources.`, the content uses a URL that starts with `/_phyllo/`. This prefix is reserved for build assets, so use a different directory name.
+
+For other errors, follow the hints in the terminal. For the rules on navigation and languages, see [Organizing navigation](../themes/docs/navigation.mdx) and [Multilingual docs](../themes/docs/languages.mdx).
+
+## Preview problems \{#preview\}
+
+- The port is taken: use `phyllo dev --port 3002` to pick another port.
+- An image returns 404: check that the relative path is right and that the file is in the content directory or `public/`.
+- Styles do not apply: make sure the stylesheet is included through `head.link` or already imported in the theme entry file.
+- A saved file does not update: check that the dev server is still running and look for errors in the terminal.
+- The page shows an error: fix the file as the terminal suggests, and the dev server rebuilds and recovers automatically.
+
+## Search problems \{#search\}
+
+- Searches find nothing: the index only collects text from source files, and content that components generate at runtime does not enter the index.
+- Local results include other languages: check the `locales` scopes in the root home page. A custom theme needs to pass the content directory to the `directory` option of the query function.
+- Algolia returns no results: check `search.options` in the root home page and confirm the index is up to date. The `lang` in the records needs to match the page, and the index needs to allow filtering on that field.
+- Search breaks after deployment: make sure you uploaded the full `dist/`, since the local index is deployed along with the build output.
+
+For configuration in the docs theme, see [Configuring search](../themes/docs/search.mdx), and for the interface in a custom theme, see [Local search](../themes/search.mdx).
+
+## Deployment problems \{#deployment\}
+
+- The home page loads but articles return 404: the hosting service does not support extensionless URLs. It needs to resolve `/path` to `/path.html`.
+- Assets disappear after deploying to a subpath: the site needs to be deployed at the domain root.
+- Images are missing: check that you uploaded the full `dist/` and that the images reference the built URLs.
+- Interactions stop working: check that page scripts load without errors in the browser console.
+
+For hosting requirements and a checklist, see [Deployment](../guide/deployment.mdx).
+
+## Getting help \{#help\}
+
+When you open an issue, these details help locate the problem faster:
+
+- The Phyllo and Bun versions, which you can check with `phyllo --version` and `bun --version`.
+- The steps to reproduce the problem and the configuration or frontmatter involved.
+- The full error message, including the file paths the terminal prints.
+- A minimal reproduction project, if you can put one together.

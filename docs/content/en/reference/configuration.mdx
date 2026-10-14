@@ -1,0 +1,156 @@
+# Site configuration reference \{#configuration-reference\}
+
+Phyllo reads `phyllo.config.ts` from the site root. For examples of common settings, see [Site configuration](../guide/configuration.mdx). This page lists every field and the rules for handling them.
+
+## Config format \{#format\}
+
+The config file exports an object by default, and `defineConfig` from `@phyllo/core` provides type hints:
+
+```ts
+import { defineConfig } from '@phyllo/core';
+
+export default defineConfig({
+  theme: 'phyllo-theme-docs',
+  title: 'My project',
+  description: 'Installation steps and a usage guide for the project.',
+  lang: 'en-US',
+});
+```
+
+The same entry point also exports the `Config` type. Each theme defines the format of its own theme settings. The docs theme stores the navigation and home page content in the home page frontmatter.
+
+## Field overview \{#options\}
+
+| Field                    | Default     | Description                            |
+| ------------------------ | ----------- | -------------------------------------- |
+| `theme`                  | Required    | Package name of an installed theme     |
+| `title`                  | `undefined` | Site name                              |
+| `description`            | `undefined` | Default description for pages          |
+| `head`                   | `{}`        | Extra HTML head tags                   |
+| `lang`                   | `undefined` | Default value for the HTML language    |
+| `redirects`              | `{}`        | Redirect mapping between page URLs     |
+| `search`                 | `false`     | Whether to generate the local index    |
+| `content`                | `'content'` | Content directory relative to the root |
+| `outdir`                 | `'dist'`    | Output directory relative to the root  |
+| `markdown.highlight`     | `true`      | Highlight code blocks with Shiki       |
+| `markdown.remarkPlugins` | `[]`        | Markdown processing plugins            |
+| `markdown.rehypePlugins` | `[]`        | HTML syntax tree processing plugins    |
+
+When you omit a field, a value of `undefined` means the field is not configured, and the other fields use the defaults in the table above.
+
+`theme` takes a package name, and local themes are referenced by package name too. `content` and `outdir` live inside the site, and the output directory needs to stay separate from the content, assets, and dependency directories.
+
+## Title and description \{#metadata\}
+
+Phyllo reads `title` and `description` from the frontmatter. These two fields provide the metadata of the current page. The fields with the same names in the site configuration provide the site name and the default description.
+
+The page name is determined in this order:
+
+1. `title` in the frontmatter.
+2. The first level-1 heading in the body.
+3. The file name.
+
+An `index.md` or `index.mdx` without a title uses the site `title`. The page description comes from the frontmatter `description`. When the theme renders the description tag and the page has no description, it uses the site `description`.
+
+The theme outputs the page title and description. When the theme does not define the corresponding values, the `title` and `description` from the site configuration are used.
+
+## Head tags \{#head\}
+
+`head` adds HTML head tags to content pages, such as stylesheets, icons, and scripts:
+
+```ts
+import { defineConfig } from '@phyllo/core';
+
+export default defineConfig({
+  theme: 'phyllo-theme-docs',
+  title: 'My project',
+  head: {
+    link: [
+      { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+      { rel: 'stylesheet', href: '/custom.css' },
+    ],
+    meta: [{ name: 'theme-color', content: '#2563eb' }],
+    script: [{ src: '/analytics.js', defer: true }],
+  },
+});
+```
+
+Files in the example live in the site's `public/` directory and are copied to the output directory as-is. You can also use external URLs in the configuration.
+
+| Field      | Value structure                                                       |
+| ---------- | --------------------------------------------------------------------- |
+| `base`     | A single HTML attribute object                                        |
+| `meta`     | Array of HTML attribute objects                                       |
+| `link`     | Array of attribute objects, each with `href`                          |
+| `style`    | Array of attribute objects, each with CSS in `textContent`            |
+| `script`   | Array of attribute objects, with the script in `src` or `textContent` |
+| `noscript` | Array of attribute objects, with content in `innerHTML`               |
+
+Attribute names use React's spelling, such as `charSet`, `noModule`, and `httpEquiv`. Attribute values accept strings, numbers, and booleans, and do not accept components or event callbacks. Inline content cannot contain the closing tag of the corresponding element, and `noscript` content needs to be valid for the HTML head.
+
+### Append rules \{#head-appending\}
+
+Tags from the configuration are appended to the final HTML directly, and tags output by the theme are not affected. Tags for the same purpose can exist at the same time. Phyllo does not validate, deduplicate, or replace theme tags.
+
+Redirect pages do not use the `head` configuration.
+
+### Custom styles \{#custom-css\}
+
+Stylesheets from the configuration load after the theme's built styles and can override the CSS variables the theme defines. For which variables a theme provides, see the theme documentation.
+
+`head` only affects the output tags and does not change the data returned by `useSite()` or `usePage()`.
+
+## HTML language \{#lang\}
+
+`lang` accepts a language tag and provides the default for `<html lang>`:
+
+```ts
+lang: 'en-US',
+```
+
+TypeScript checks the field type, and the build reports an error when the language tag is invalid.
+
+`lang` is the default when a theme renders `<html lang>`, and the theme reads it through `useSite().lang`. When the theme already outputs a `lang` attribute, the theme's value is kept. When the field is not configured, the value is `undefined`, and the framework does not add a language attribute.
+
+`lang` only provides the default for the HTML attribute and does not take part in routing or language detection. When different pages use different languages, the theme decides the language attribute and how readers switch between languages.
+
+## Redirects \{#redirects\}
+
+`redirects` uses exact page URLs within the site:
+
+```ts
+redirects: {
+  '/': '/en',
+  '/old-guide': '/en/guide/getting-started',
+},
+```
+
+Sources and targets start with `/` and have no trailing slash except for the root path. Rules do not match subpaths and do not support external URLs, wildcards, query parameters, or anchors.
+
+The target page must exist, and a redirect cycle fails the build. When a source file and an explicit redirect share the same URL, the redirect wins. The source file metadata is still readable through `usePages()`, but it does not enter the local search index. A URL that only has a redirect and no source file does not appear in `usePages()`.
+
+The dev server returns HTTP 302. The build output contains a redirect page with `meta refresh`, and the status code after deployment depends on the hosting service.
+
+## Local search \{#search\}
+
+`search` is a boolean and defaults to `false`. When set to `true`, the build generates the site's local search index:
+
+```ts
+search: true,
+```
+
+The index is written to `/_phyllo/search.json`, and themes read it through the query function from [useSearch()](./hooks.mdx#use-search). When the field is not configured or set to `false`, no index is generated, and queries return empty results.
+
+The theme provides the search interface. This field does not control remote search that a theme integrates, and each theme defines its own connection parameters for remote services.
+
+The local index uses MiniSearch. The index covers each article's title, section headings, body, code blocks, and description. The index comes from source files and does not run components to collect text generated at runtime. This field has no other options and needs no remote service.
+
+For the search interface and options on the theme side, see [Local search](../themes/search.mdx).
+
+## Markdown extensions \{#markdown\}
+
+Markdown and MDX support tables, task lists, and frontmatter by default. Shiki highlights code at build time, and the browser does not load Shiki.
+
+Extra content processing plugins are configured through `remarkPlugins` or `rehypePlugins`. After you install a plugin, import it in the config file.
+
+Custom `rehypePlugins` run after the built-in highlighting. When you use another highlighting plugin, set `markdown.highlight: false` to avoid processing code twice.

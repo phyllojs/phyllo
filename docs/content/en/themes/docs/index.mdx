@@ -1,0 +1,81 @@
+import { Callout } from 'phyllo-theme-docs';
+
+# Using the docs theme \{#docs-theme\}
+
+`phyllo-theme-docs` organizes content into sections. The top bar switches sections, the left sidebar lists the articles in the current section, and the right outline shows the headings in the body. The top bar also provides search, a light and dark mode switch, and a language switcher.
+
+## What the theme provides \{#features\}
+
+- The hero section and feature descriptions on the home page.
+- Top-level sections and dropdowns, plus groups and nesting in the left sidebar.
+- The in-page outline and previous and next links on article pages.
+- Local search and Algolia.
+- A light and dark mode switch.
+- Language directory conventions and language switching.
+
+## Getting started \{#installation\}
+
+New sites can choose the docs theme during initialization. For an existing site, install it as described in [Installing and using themes](../installation.mdx#npm-themes), with `phyllo-theme-docs` as the package name, then enable it in the site configuration.
+
+## Setting up navigation and the home page \{#home-settings\}
+
+Navigation and home page content go in the frontmatter of `content/index.mdx`. The example below uses articles from the getting started guide:
+
+```md
+---
+nav:
+  - label: Guide
+    sidebar:
+      - label: Getting started
+        items:
+          - href: /getting-started
+hero:
+  title: My project docs
+  description: Start with installation, then learn how to use the project.
+---
+```
+
+After saving, the home page shows the title, the description, and an action to the first article, and a "Guide" section appears in the top bar. `nav` is set once on the home page, and articles share it. On a multilingual site, shared configuration also stays on the root home page. Navigation and hero content for each language go on its own home page, see [Multilingual docs](./languages.mdx).
+
+When the home page file has only frontmatter, the theme renders the default home page. If you write a body after the closing `---`, the body replaces the default content.
+
+## Page layouts \{#layouts\}
+
+The home page uses the `home` layout by default, and articles use the `doc` layout. Pages that keep only the body use `page`, and full control uses `false`. See [Page layouts](./layout.mdx) for how the four layouts differ.
+
+## Content components \{#content-components\}
+
+The theme exports `Callout` for adding callout boxes to an article:
+
+```mdx
+import { Callout } from 'phyllo-theme-docs';
+
+<Callout type="warning">
+  Back up the configuration file before upgrading.
+</Callout>
+```
+
+`type` accepts `note` (the default), `tip`, `info`, `warning`, and `danger`. The value decides the colors and the default title. Add `title` when you need a custom title:
+
+<Callout>Extra notes or prerequisites.</Callout>
+<Callout type="tip">An approach that saves some effort.</Callout>
+<Callout type="info">
+  Check the output in the `dist/` directory after the build.
+</Callout>
+<Callout type="warning">
+  Back up the configuration file before upgrading.
+</Callout>
+<Callout type="danger">Do not run this command in production.</Callout>
+
+For the `Hero` and `Features` used on the home page, see [Customizing the home page](./homepage.mdx).
+
+## Next steps \{#next-steps\}
+
+- [Organizing navigation](./navigation.mdx): add articles, split sections, and configure external links.
+- [Customizing the home page](./homepage.mdx): set the hero text, image, and actions.
+- [Changing colors](./styles.mdx): adjust colors with a stylesheet.
+- [Configuring search](./search.mdx): enable local search or connect Algolia.
+- [Multilingual docs](./languages.mdx): organize content by language.
+- [Docs theme configuration](./configuration.mdx): every field and its default behavior.
+
+The docs theme provides a search box, a result list, and language filtering, configured as described above. When you build your own search interface, read [Local search](../search.mdx).

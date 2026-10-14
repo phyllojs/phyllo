@@ -1,0 +1,57 @@
+import { Callout } from 'phyllo-theme-docs';
+
+# Introduction \{#introduction\}
+
+## What is Phyllo \{#what-is-phyllo\}
+
+Phyllo is a static site framework built with Bun. It reads Markdown or MDX articles from a content directory, applies a theme, and generates static HTML files.
+
+Content lives in the articles. Page structure, navigation and styles come from the theme.
+
+For the steps to create your first site, see [Getting started](./getting-started.mdx).
+
+Here is the body of an article:
+
+```mdx
+import { Callout } from 'phyllo-theme-docs';
+
+Make sure Bun is installed before you begin.
+
+<Callout title="Version requirement">Phyllo requires Bun 1.4 or later.</Callout>
+```
+
+**Rendered result**
+
+Make sure Bun is installed before you begin.
+
+<Callout title="Version requirement">Phyllo requires Bun 1.4 or later.</Callout>
+
+This body shows the two basic parts of Phyllo:
+
+- **Articles**: Markdown or MDX files stored in the `content/` directory.
+- **Themes**: they provide page structure and styles. The callout above comes from the documentation theme this site uses.
+
+Components can come from a theme, or live in your project's own `content/components/` directory. Callouts, example panels and interactive demos can all be written as components and used in articles. You don't need dedicated Markdown syntax for them.
+
+## Bun and MDX \{#bun-and-mdx\}
+
+Phyllo is developed and built with Bun. Bun is a JavaScript runtime that handles command execution and dependency installation. Your project doesn't need an extra build toolchain.
+
+You can write articles in Markdown or MDX. MDX supports JSX on top of Markdown. You can import components and expressions into the body to add interactivity to an article. The two file types can be mixed, and the extension decides which syntax is used.
+
+## Themes \{#themes\}
+
+Themes are published as packages and installed into a site. Enter the package name in the site configuration to enable one.
+
+The framework handles content parsing, routing, build output, redirects and the search index, and provides defaults such as `lang`, `title` and `description`. The theme handles page structure and outputs the HTML language and page metadata, then the framework appends `head` tags according to the site configuration. The same content with different themes can produce different kinds of sites. Official themes and custom themes are installed in the same way. For using and developing themes, see [Theme overview](../themes/overview.mdx).
+
+## Prerequisites \{#prerequisites\}
+
+Following the guide requires basic terminal skills, while writing needs no programming knowledge. Using components and writing themes require JavaScript basics. Individual pages explain what you need to know in advance.
+
+## Learning paths \{#learning-paths\}
+
+- To build your first site: [Getting started](./getting-started.mdx) gives the complete steps from creation to preview.
+- To understand design trade-offs: [FAQ](../about/faq.mdx) explains why Bun, MDX and React were chosen.
+- To design the look of pages: [Theme overview](../themes/overview.mdx) covers what themes can do and how to install them.
+- To look up configuration fields: [Site configuration reference](../reference/configuration.mdx) lists every option.

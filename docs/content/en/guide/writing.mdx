@@ -1,0 +1,146 @@
+import { Callout } from 'phyllo-theme-docs';
+
+import CopyCommand from '../../components/CopyCommand';
+
+# Writing articles \{#writing\}
+
+This page covers the basics of formatting articles, using components, and writing browser-side code. Articles come in two extensions. `.mdx` supports Markdown and JSX, so you can use components and expressions in the content. `.md` parses Markdown only. Both file types share the same formatting syntax and page URL rules.
+
+## Basic formatting \{#markdown\}
+
+Headings, paragraphs, lists, blockquotes, tables, and task lists are written the same way as in Markdown:
+
+```md
+## Check the environment
+
+Make sure the tools you need are installed.
+
+- A text editor
+- Bun
+
+1. Open the project directory.
+2. Install dependencies.
+3. Start the dev server.
+```
+
+Phyllo enables GFM (GitHub Flavored Markdown) support by default. Both `.md` and `.mdx` files can use tables and task lists. For the complete Markdown syntax, see the [Markdown guide](https://www.markdownguide.org/basic-syntax/). This page does not repeat it.
+
+## Section anchors \{#anchors\}
+
+A heading can specify an anchor so that links can jump to that section:
+
+```mdx
+## Prepare the environment \{#prerequisites\}
+```
+
+An anchor appears in the URL after `#`, for example `/guide/installation#prerequisites`. The braces and backslashes are not shown on the page. Anchors on the same page must be unique. English words are recommended, so that pages in different languages can share the same links. Only second- and third-level headings appear in the page outline on the right.
+
+## Code blocks \{#code\}
+
+Inline code uses a pair of backticks, for example `bun run dev`. For multi-line code, wrap it in three backticks and put the language after the opening backticks:
+
+````md
+```ts
+const message = 'Hello, Phyllo';
+console.log(message);
+```
+````
+
+Phyllo highlights code blocks with Shiki by default. Common languages include `mdx`, `ts`, `tsx`, `js`, `json`, and `sh`. When you omit the language, write `text`, or use an unknown language, the code is displayed as plain text. Inline code is not highlighted.
+
+To turn highlighting off or use a different highlighting plugin, see [Site configuration reference](../reference/configuration.mdx#markdown).
+
+## Expressions \{#expressions\}
+
+MDX lets you write JavaScript expressions in the content. A common use is to define a value that appears repeatedly in one place and reference it in the text:
+
+```mdx
+export const minimumBun = '1.4';
+
+Phyllo requires Bun {minimumBun} or later.
+```
+
+`export const` defines a variable at the top of the file, and `{minimumBun}` in braces is replaced with its value at build time. The text above renders as:
+
+Phyllo requires Bun 1.4 or later.
+
+To show the braces themselves, put them in inline code or a code block.
+
+## Using components \{#components\}
+
+Import a component with `import`, then write it into the content like a tag. The component below lives in `content/components/CopyCommand.tsx` and copies a command. The import path is relative to the current file. For an article in the root of `content/`, the code looks like this:
+
+```mdx
+import CopyCommand from './components/CopyCommand';
+
+<CopyCommand command="bun add phyllo" label="Copy install command" />
+```
+
+If the article is in a subdirectory, adjust the path for its depth. For example, an article in `content/en/guide/` uses `../../components/CopyCommand`.
+
+**Result**
+
+<CopyCommand command="bun add phyllo" label="Copy install command" />
+
+Component props pass data into the component. Above, `command` is the command to copy, and `label` is the button text. If a component is not imported, the build reports an error. For the exact error message, see [Troubleshooting](../about/troubleshooting.mdx#missing-import). How to write a component and which props are available are covered in the next section.
+
+## Creating a component \{#create-component\}
+
+A component is a TypeScript file that returns JSX. The implementation of `content/components/CopyCommand.tsx` looks like this:
+
+```tsx
+import { useState } from 'react';
+
+export default function CopyCommand({
+  command,
+  label = 'Copy command',
+}: {
+  command: string;
+  label?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(command);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <button type="button" onClick={copy}>
+      {copied ? 'Copied' : label}
+    </button>
+  );
+}
+```
+
+`useState(false)` tracks whether the button has already copied, and returns the current value `copied` and the update function `setCopied`. `copy()` writes the command to the clipboard and, on success, sets `copied` to `true`, which changes the button text. Component files themselves do not generate pages.
+
+## Using theme components \{#theme-components\}
+
+A theme can export content components for articles to use with `import`. Here is a component exported by this site's theme:
+
+```mdx
+import { Callout } from 'phyllo-theme-docs';
+
+<Callout title="Version requirement">Phyllo requires Bun 1.4 or later.</Callout>
+```
+
+**Result**
+
+<Callout title="Version requirement">Phyllo requires Bun 1.4 or later.</Callout>
+
+Components exported by a theme are imported from the theme package, the same way as your own components. For the available components, see the documentation of the theme you use.
+
+## Code in the browser \{#browser-code\}
+
+Phyllo runs components at build time to generate the page's initial HTML. Event handlers and state updates only take effect after the browser loads the page script.
+
+The build runs in Bun, where there is no browser window. Code that accesses objects such as `window` and `document` must go in an event callback or a `useEffect`. `useEffect` runs its code after the component appears in the browser.
+
+The earlier component calls `navigator.clipboard`. That code sits in a click callback and runs only in the browser, so the site can still be deployed as static files.
+
+For how links, images, and other assets are handled, see [Links and assets](./links-and-assets.mdx).

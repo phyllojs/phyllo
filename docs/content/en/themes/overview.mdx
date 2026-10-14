@@ -1,0 +1,35 @@
+# Theme overview \{#themes\}
+
+The theme decides the kind of site you get and how it looks. It provides the home page, navigation, article layout, and interactions.
+
+## What a theme does \{#responsibilities\}
+
+A theme takes care of the following:
+
+- It decides the HTML structure and metadata of pages.
+- It provides the layout of the home page, navigation, article lists, and article pages.
+- It provides interactions such as search, light and dark mode, and language switching.
+- It exposes adjustable appearance through CSS variables and content components.
+
+Articles provide the content, and the theme decides page structure and styles. With the same content, switching themes changes both the kind of site and its layout.
+
+## npm themes and local themes \{#sources\}
+
+Themes are published as packages, and there are two main sources. npm is the package registry for JavaScript:
+
+| Source       | Where it lives                                           | When to use it                                      |
+| ------------ | -------------------------------------------------------- | --------------------------------------------------- |
+| npm themes   | Published on npm and installed into the project with Bun | Using and updating an already published theme       |
+| Local themes | Source code kept in the project's `themes/` directory    | Developing or maintaining a theme for your own site |
+
+Both kinds of themes have their own package name. Enter the package name in the site configuration to use one. References work the same way for both.
+
+## Official themes \{#official-themes\}
+
+The official themes currently include the [docs theme](./docs/index.mdx). `phyllo-theme-docs` organizes content into sections and provides a top bar, a sidebar, an in-page outline, search, and a language switcher.
+
+Official themes are released separately from the framework. A site that does not use a theme does not download or build that theme's code.
+
+## Installing and developing \{#install\}
+
+For the steps to install a theme, enter its package name, and switch themes, see [Installing and using themes](./installation.mdx). To keep an existing theme's look and add your own changes, use [Customizing themes](./customization.mdx). To design layout and interactions from scratch, use [Writing a theme](./development.mdx).

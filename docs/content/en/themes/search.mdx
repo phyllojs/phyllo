@@ -1,0 +1,133 @@
+# Local search \{#search\}
+
+Phyllo provides a local search index and the `useSearch()` query function. The theme takes care of the search box, the result list, and the interface state. This page covers how to add local search to a theme.
+
+## Where search comes from \{#architecture\}
+
+When local search is on, Phyllo generates search data during dev and at build time. The data contains titles, section headings, article bodies, code blocks, and page descriptions. The browser reads this data through the query function returned by `useSearch()`. Local search needs no extra account or service.
+
+The index comes from source files. Phyllo does not run components to collect text, so content that only appears after a component runs does not enter the index.
+
+## Site configuration \{#configuration\}
+
+Turn search on in the site configuration `phyllo.config.ts`:
+
+```ts
+search: true,
+```
+
+Only `true` generates the index, with the output file `/_phyllo/search.json`. When you do not configure it, no index is generated and queries return empty results. For the field description, see the [Site configuration reference](../reference/configuration.mdx#search).
+
+## Writing the search component \{#search-component\}
+
+The theme gets the query function from `useSearch()`, manages loading state itself, and renders the interface:
+
+```tsx
+import { type SearchResult, useSearch } from 'phyllo';
+import { useEffect, useState } from 'react';
+
+export default function Search() {
+  const search = useSearch();
+  const [query, setQuery] = useState('');
+  const [attempt, setAttempt] = useState(0);
+  const [state, setState] = useState<{
+    results: SearchResult[];
+    isLoading: boolean;
+    error?: unknown;
+  }>({ results: [], isLoading: false });
+
+  useEffect(() => {
+    const text = query.trim();
+
+    if (!text) {
+      setState({ results: [], isLoading: false });
+      return;
+    }
+    let cancelled = false;
+
+    setState({ results: [], isLoading: true });
+    search(text, { limit: 10 })
+      .then(results => {
+        if (!cancelled) {
+          setState({ results, isLoading: false });
+        }
+      })
+      .catch(error => {
+        if (!cancelled) {
+          setState({ results: [], isLoading: false, error });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [search, query, attempt]);
+
+  return (
+    <search aria-label="Site search">
+      <input
+        type="search"
+        aria-label="Search content"
+        value={query}
+        onChange={event => setQuery(event.currentTarget.value)}
+      />
+      {state.isLoading && <p role="status">Searching…</p>}
+      {state.error !== undefined && (
+        <button type="button" onClick={() => setAttempt(value => value + 1)}>
+          Retry
+        </button>
+      )}
+      <ul>
+        {state.results.map(result => (
+          <li key={result.url}>
+            <a href={result.url}>{result.title}</a>
+          </li>
+        ))}
+      </ul>
+    </search>
+  );
+}
+```
+
+The example uses a cancellation flag to keep old results from overwriting new ones, and manages loading and failure state. The query result is a `SearchResult[]`. Each item contains `url`, `title`, `heading`, and `snippet`, and `terms` holds plain-text words you can use for highlighting. The `directory` option limits results to a content directory and its subdirectories. When omitted, the query searches all content.
+
+## Adding it to the layout \{#add-to-layout\}
+
+Save the component above as `src/Search.tsx` in the theme. The next file, `src/Header.tsx`, imports it and decides whether to display it based on the site configuration:
+
+```tsx
+import { useSite } from 'phyllo';
+
+import Search from './Search';
+
+export default function Header() {
+  const site = useSite();
+
+  return <header>{site.search && <Search />}</header>;
+}
+```
+
+Add `<Header />` inside the layout's `<body>` to show the top bar. The search component above depends on the local index, so it appears only when `site.search` is `true`. If a theme also offers remote search, decide whether to show the entry point according to the search method in use.
+
+## Controlling when queries run \{#query-state\}
+
+An empty string means no search: the query returns empty results and does not load the index. When the search box is cleared or a dialog closes, set the query back to an empty string. No extra flag is needed. `useSearch()` must always be called at the top level of the component. Loading, failure, retry, and stale results are managed by the theme's interface state.
+
+## Limiting the search scope \{#scope\}
+
+When a site uses content directories per language, pass the current language's directory to the query function's `directory` option. Results then include only pages under that directory and its subdirectories:
+
+```tsx
+const search = useSearch();
+const results = await search(query, { directory: 'zh' });
+```
+
+`directory` matches on directory boundaries, so passing `zh` matches `zh/guide/x` but not `zhongwen`. When omitted, the query searches all content.
+
+For the full options and return value of the query function, see the [useSearch reference](../reference/hooks.mdx#use-search).
+
+## Using remote search \{#remote-search\}
+
+Services such as Algolia use their own index and query APIs, so a theme must integrate them separately. Remote search does not require Phyllo's local search, but the theme still needs the service parameters configured.
+
+When you use the official docs theme, you do not need to write a search component yourself. For configuration, see [Configuring search](./docs/search.mdx).

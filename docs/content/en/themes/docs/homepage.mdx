@@ -1,0 +1,101 @@
+# Customizing the home page \{#homepage\}
+
+By default the home page shows the site name, the description, and an action to the first article. The hero section can have its own text and image, and feature descriptions can appear below it. Like navigation, these settings go in the frontmatter of the home page file.
+
+On a single-language site, the home page is `content/index.mdx`. Once the root file declares `locales`, home page settings go in each language directory, for example `content/zh/index.mdx`. The root file then holds only shared theme configuration and shows no home page content, see [Multilingual docs](./languages.mdx).
+
+## Default home page \{#default-home-page\}
+
+When the home page file has only frontmatter, the theme shows the default hero section. When `hero.title` or `hero.description` is omitted, that content falls back to `title` or `description` in the site configuration. When no site name is configured, the title falls back to the word for "docs" in the interface language.
+
+## Hero section \{#hero\}
+
+`hero` configures the hero section and sits alongside `nav` and `links`:
+
+```yaml
+hero:
+  title: My project docs
+  description: Start with setup, then work through how to use the project.
+  actions:
+    - label: Start reading
+      href: /getting-started
+```
+
+Each entry in `actions` uses `label` and `href`. When omitted, the theme generates a default action that points to the first article in the first sidebar section. Set `actions: []` to hide all actions.
+
+`hero.title` and `hero.description` only affect the hero section on the home page. The browser title and the HTML description tag still come from the site configuration and page info.
+
+## Image on the right \{#image\}
+
+Put the image in `public/preview.png` and reference it with `hero.image`:
+
+```yaml
+hero:
+  image:
+    src: /preview.png
+    alt: A preview of the project interface
+```
+
+`src` is the image address and `alt` is the alternative text. On desktop the image sits to the right of the text, and on narrow screens it moves above the title. When no image is given, the hero section is centered and no empty space is kept.
+
+The favicon is set through `head.link` in the site configuration, independent of the hero image, see [Site configuration](../../guide/configuration.mdx#head).
+
+## Feature descriptions \{#features\}
+
+`features` sits alongside `hero`, and each entry has a title and a description:
+
+```yaml
+features:
+  - title: Installation
+    description: Set up the environment and start your first site.
+  - title: Writing
+    description: Record how the project works in MDX.
+```
+
+Feature descriptions appear below the hero section, in array order. When `features` is omitted, the section does not appear.
+
+## Replacing the default home page with a body \{#custom-body\}
+
+Write a body after the closing `---` of the home page file, and the theme replaces the hero section and feature descriptions with that body. The top bar stays:
+
+```md
+# My project \{#my-project\}
+
+This page explains what the project is for.
+
+[Start reading](/getting-started)
+```
+
+The home page `nav` and `links` still apply, no need to set them up again.
+
+## Composing theme components \{#compose-a-home-page\}
+
+When you want to keep the default hero section and add content after it, import the components the theme exports. Keep the frontmatter of the home page file, and write a body like this:
+
+```mdx
+import { Features, Hero } from 'phyllo-theme-docs';
+
+<Hero />
+
+<Features />
+
+## See an example \{#example\}
+
+Add project content here, and you can also import your own interactive components.
+```
+
+`Hero` and `Features` render the hero section and feature descriptions from the configuration. Any body after them is placed below the whole hero section.
+
+When the area on the right needs custom content, write the content inside the `Hero` tag:
+
+```mdx
+import { Hero } from 'phyllo-theme-docs';
+
+<Hero>
+  <img src="/preview.png" alt="A preview of the project interface" />
+</Hero>
+```
+
+Content inside the tag replaces `hero.image`.
+
+Once the home page is set up, continue with [Page layouts](./layout.mdx).

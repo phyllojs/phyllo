@@ -1,0 +1,89 @@
+# Customizing themes \{#customizing-themes\}
+
+An existing theme can serve as the base of a local theme and keep providing layout and content components. Your custom code stays in your own project. This keeps the original pages and makes it easier to update the theme you depend on.
+
+When you only need to change home page text or colors, use the theme's configuration options instead of creating a local theme.
+
+## When to use it \{#when-to-use\}
+
+A local theme fits these cases:
+
+- You want to keep an official theme's layout and only adjust styles or a small part of the structure.
+- You want to reuse your project's own components in the theme.
+- The theme's configuration options do not cover what you need.
+
+## Generating the template \{#create-the-package\}
+
+Run this in the site directory:
+
+```sh
+phyllo theme themes/custom --package phyllo-theme-custom
+```
+
+The command generates these files:
+
+```text
+themes/custom/
+├── src/
+│   └── index.tsx
+├── package.json
+└── tsconfig.json
+```
+
+`themes/custom` is the source directory, and `phyllo-theme-custom` is the package name. The template contains a basic layout. Generating the template does not switch the theme the site currently uses.
+
+## Reusing an installed theme \{#reuse-the-theme\}
+
+Add the theme you want to reuse as a dependency of the local theme:
+
+```sh
+bun add phyllo-theme-docs --cwd themes/custom
+```
+
+`--cwd` sets the directory the command runs in, so the dependency is recorded in the local theme's `package.json`. Change `themes/custom/src/index.tsx` to:
+
+```tsx
+import DocsLayout from 'phyllo-theme-docs';
+
+import './style.css';
+
+export default DocsLayout;
+```
+
+`DocsLayout` is the layout component exported by the docs theme. The docs theme keeps providing the home page, navigation, and article layout. Existing frontmatter configuration keeps working as well.
+
+## Adding custom styles \{#styles\}
+
+Create `themes/custom/src/style.css`:
+
+```css
+:root {
+  --accent-color: #7c3aed;
+}
+```
+
+The example changes the accent color to purple. The entry imports the original theme first, then this stylesheet, and Phyllo builds them together. You do not need to configure `head.link` separately. For the color variables you can override, see [Changing colors](./docs/styles.mdx#variables).
+
+## Connecting it to the site \{#enable-the-theme\}
+
+Add the local theme to the site's `dependencies` in `package.json`:
+
+```json
+{
+  "dependencies": {
+    "phyllo-theme-custom": "workspace:*"
+  }
+}
+```
+
+The init tool already declares `"workspaces": ["themes/*"]`. Run `bun install`, then change `theme` in the site configuration to the local theme's package name:
+
+```ts
+theme: 'phyllo-theme-custom',
+```
+
+## Previewing the result \{#preview\}
+
+Run `bun run dev`. The home page and article layout stay the same, and links and selected items use the new accent color. Saving the local theme's styles updates the preview page.
+
+Other themes can be reused the same way. For the exact components and overridable variables, see that theme's documentation. When you need to write a complete layout yourself, read [Writing a theme](./development.mdx).

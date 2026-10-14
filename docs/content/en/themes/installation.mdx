@@ -1,0 +1,61 @@
+# Installing and using themes \{#theme-installation\}
+
+A theme must be installed into the site, then enabled through the `theme` field in `phyllo.config.ts`. This page uses the official docs theme as the example. Other published themes follow the same steps.
+
+## Choosing a theme when creating a site \{#new-site\}
+
+When you initialize a project, you can choose the official docs theme or a custom theme. Pass the package name to skip the prompt:
+
+```sh
+phyllo init my-site --theme phyllo-theme-docs
+```
+
+The tool writes the theme into the dependency declarations. Enter the project directory and run `bun install` to finish the installation. You do not need to add the dependency by hand.
+
+## Installing an npm theme \{#npm-themes\}
+
+For an existing site, install the theme first:
+
+```sh
+bun add phyllo-theme-docs
+```
+
+Then enter the package name in the site configuration and leave the other fields as they are:
+
+```ts
+theme: 'phyllo-theme-docs',
+```
+
+Community themes install the same way. Before installing, check the theme's README for the package name, the required Phyllo version, and configuration notes. Themes are installed in the site project rather than globally, so each site can choose its own theme version.
+
+## Using a local theme \{#local-themes\}
+
+Local theme source code lives in the project's `themes/` directory and is connected to the site through a workspace. A workspace lets several packages in the same project reference each other. The package name is written in the local theme's `package.json`. Use the same package name in the site configuration's `theme`:
+
+```json
+{
+  "dependencies": {
+    "phyllo-theme-custom": "workspace:*"
+  }
+}
+```
+
+`workspace:*` means using the package with that name from the workspace. The init tool already declares `"workspaces": ["themes/*"]` and adds the theme you chose, so you do not need to configure anything by hand. For the steps to write a theme yourself, see [Writing a theme](./development.mdx).
+
+## Switching themes \{#switch-theme\}
+
+To switch themes, install the new package first, then change `theme`.
+
+Theme-specific frontmatter and components need to be adjusted according to the new theme's documentation. For example, the docs theme uses `nav` to configure navigation, while other themes may use different settings. MDX files that import components from the old theme also need their imports and usage checked.
+
+## Previewing and troubleshooting \{#preview\}
+
+Start the dev server in the site directory:
+
+```sh
+bun run dev
+```
+
+Open the address shown in the terminal. The pages use the selected theme. When the theme package name is misspelled or a dependency is not installed, the dev server and the build report a clear error. For fixes, see [Troubleshooting](../about/troubleshooting.mdx).
+
+For how to configure the official docs theme, see [Using the docs theme](./docs/index.mdx). For community themes, follow each theme's own documentation.

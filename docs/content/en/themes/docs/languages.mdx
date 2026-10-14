@@ -1,0 +1,119 @@
+# Multilingual docs \{#languages\}
+
+The docs theme can provide separate articles, navigation, and home pages for each language. The language list goes together in the root file `content/index.mdx`, and each language's content is kept in its own directory.
+
+The theme provides language detection and switching. Phyllo core still generates page addresses from file paths. It does not treat directory names such as `zh` and `en` as languages.
+
+## Organizing content \{#directories\}
+
+Using the articles from the getting started guide as an example, move the Chinese content to `content/zh/` and keep the English translation in `content/en/`:
+
+```text
+content/
+├── index.mdx
+├── zh/
+│   ├── index.mdx
+│   └── getting-started.mdx
+└── en/
+    ├── index.mdx
+    └── getting-started.mdx
+```
+
+The root `index.mdx` keeps shared configuration, and the `index.mdx` in each language directory holds navigation and home page content. After you move articles, page addresses change with the directory, so body links and navigation need to be updated as well.
+
+## Declaring language scopes \{#locales\}
+
+Declare languages together in the root file `content/index.mdx`:
+
+```yaml
+---
+locales:
+  /zh/:
+    lang: zh-CN
+    label: 中文
+  /en/:
+    lang: en
+    label: English
+links:
+  - icon: github
+    href: https://github.com/your-name/your-project
+---
+```
+
+Whether the root file declares `locales` decides its role. Without it, the file is the home page of single-language docs. With it, the file only provides shared theme configuration and shows no top bar, hero section, or body. Each language home page is configured in the `index.mdx` of its own directory.
+
+`lang` is the HTML language tag, and `label` is the name shown in the menu. Shared `logo`, `links`, and `search` also go in the root file, with no need to copy them into each language home page.
+
+Scope keys end with a slash, while page addresses themselves have no trailing slash. For example, `/zh/` covers the home page `/zh` and the article `/zh/getting-started`, and does not match `/zhongwen`.
+
+Only scopes declared in `locales` carry language meaning. `content/zh/guide/index.mdx` is still a regular article and needs no separate language setting.
+
+Each language uses its own directory, and no scope uses the root path `/`. Other articles in the root directory stay reachable, and their language attribute uses the `lang` default from the site configuration. `locales` does not change article addresses and does not require a home page in every language directory.
+
+## Setting up navigation for each language \{#localized-navigation\}
+
+The Chinese home page `content/zh/index.mdx`:
+
+```yaml
+---
+nav:
+  - label: 指南
+    sidebar:
+      - label: 入门
+        items:
+          - href: /zh/getting-started
+hero:
+  title: 我的项目文档
+  description: 从安装开始，了解项目的使用方法。
+---
+```
+
+The English home page `content/en/index.mdx`:
+
+```yaml
+---
+nav:
+  - label: Guide
+    sidebar:
+      - label: Getting started
+        items:
+          - href: /en/getting-started
+hero:
+  title: Project documentation
+  description: Learn how to install and use the project.
+---
+```
+
+A language home page does not need to set `lang` again. The theme uses the mapping in the root file to output the matching `<html lang>` for pages inside a scope.
+
+Each language can have its own sections and article order. The `nav` on a language home page replaces the shared navigation from the root file, and when it is not set, the shared navigation applies. Articles join navigation through explicit links, with no limit from the language scope.
+
+The home page shows `hero` and `features` by default. When the home page has a body, the body replaces the default content, under the same rules as a single-language home page, see [Customizing the home page](./homepage.mdx).
+
+## Setting up the entry redirect \{#language-and-redirect\}
+
+To send visitors from `/` to the Chinese home page, add this in `phyllo.config.ts`:
+
+```ts
+redirects: {
+  '/': '/zh',
+},
+```
+
+The root file still holds shared configuration, and visits to `/` follow the explicit rule. Core performs the redirect. The theme does not redirect based on the order of language declarations and provides no `defaultLocale`.
+
+Without a redirect, visiting `/` shows a blank page. Set up the redirect above when the root path should open a language home page. For the full rules, see [Site configuration reference](../../reference/configuration.mdx#redirects).
+
+## Switching languages \{#switch-languages\}
+
+The menu sorts automatically by `label`, using a fixed English sort order. English comes before Chinese, and the configuration order and the current page language do not change the menu order. The theme decides the selected item from the scope the current page belongs to, and the current language does not move to the first position.
+
+When switching from an article, the theme looks for the article with the same relative path under the other language, for example `/zh/getting-started` pairs with `/en/getting-started`. The option links through when a translation exists, and is disabled when it is missing. Switching from a home page goes to the home page of the target language.
+
+Shared pages outside every language scope select no language, and the menu entries point to each language home page. The theme has built-in Chinese and English interface text, and other languages use the English interface for now. Articles and HTML language tags still follow the configuration.
+
+## Limiting the search language \{#search-language\}
+
+The search service is configured once in the root file. With local search, the theme passes the content directory for the current language to the `directory` option of the query function. With Algolia, all languages share one index and queries filter by the current page language.
+
+For details, see [Configuring search](./search.mdx), and for every theme field, see [Docs theme configuration](./configuration.mdx).

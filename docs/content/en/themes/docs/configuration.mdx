@@ -1,0 +1,215 @@
+# Docs theme configuration \{#docs-configuration\}
+
+This page lists every field of `phyllo-theme-docs`. If you are new to the theme, start with [Using the docs theme](./index.mdx).
+
+Shared configuration goes in the frontmatter of `content/index.mdx`. Multilingual sites keep this file as well, and the language list, top bar logo, external links, and search settings only need to be configured once.
+
+| Where to configure                                                                                                              | Fields                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Root file `content/index.mdx`                                                                                                   | `logo`, `links`, `locales`, `search`, and shared `nav` |
+| The current home page, which is the root home page on a single-language site and each language home page on a multilingual site | `nav`, `hero`, `features`                              |
+| Pages that need a different layout                                                                                              | `layout`                                               |
+
+The `nav` on each language home page replaces the shared navigation. The arrays do not merge. `hero` and `features` are read from the current page only and are not inherited from the root home page.
+
+## nav \{#nav\}
+
+- Type: array.
+- Default: `[]`, which shows no top navigation.
+
+Each entry needs `label` and one of `href`, `sidebar`, and `items`:
+
+| Field     | Type   | Purpose                                                                     |
+| --------- | ------ | --------------------------------------------------------------------------- |
+| `label`   | string | Name in the top bar or a dropdown menu                                      |
+| `href`    | string | A plain page link or an external URL                                        |
+| `sidebar` | array  | The sidebar groups of the current section. Clicking opens the first article |
+| `items`   | array  | Sections or plain links in a dropdown menu                                  |
+
+`items` holds at least one entry, and each entry uses `label` and `href`, or `label` and `sidebar`. Dropdowns support one level only.
+
+### Sidebar groups \{#sidebar-groups\}
+
+A `sidebar` holds at least one group:
+
+| Field   | Type   | Purpose                                                           |
+| ------- | ------ | ----------------------------------------------------------------- |
+| `label` | string | Sidebar section title, required                                   |
+| `items` | array  | Article links or nested groups, required, with at least one entry |
+
+Groups can nest further through `items`, with no depth limit. A group cannot set `href`. The sidebar expands all groups by default, and article links can be mixed with nested groups.
+
+The entry of a top-level section is the first article in the sidebar. Previous and next links follow the article order from top to bottom in the sidebar and skip group titles. Breadcrumbs show the groups the current article belongs to, level by level.
+
+### Article links \{#sidebar-items\}
+
+| Field   | Type   | Purpose                                                        |
+| ------- | ------ | -------------------------------------------------------------- |
+| `href`  | string | In-site page address, required, for example `/getting-started` |
+| `label` | string | Name in the sidebar, optional, defaults to the page title      |
+
+An article link cannot set `items`. The page `href` points to must exist, and navigation can reference articles from a different directory. In one navigation, an article can belong to only one sidebar section.
+
+A plain `nav.href` does not assign a sidebar to the page. A page that joins no section can still be visited and searched and keeps the right outline, but has no left sidebar and no previous and next links.
+
+## logo \{#logo\}
+
+- Type: string.
+- Default behavior: the top bar shows only the site name.
+
+Set the image address on the root home page:
+
+```yaml
+logo: /logo.svg
+```
+
+The image appears to the left of the site name in the top bar and is shared by all languages. It is configured separately from `hero.image` on the home page, and the favicon is still set through `head.link` in the site configuration.
+
+## links \{#links\}
+
+- Type: array.
+- Default: `[]`, which shows no external entries.
+
+Configure on the root home page. Each entry appears as an icon in the top bar and is shared by all languages:
+
+| Field  | Type   | Purpose                                                      |
+| ------ | ------ | ------------------------------------------------------------ |
+| `icon` | string | Built-in icon name, required                                 |
+| `href` | string | Link address, required, supports protocols such as `mailto:` |
+
+Supported icons:
+
+- Code hosting and packages: `github`, `gitlab`, `gitee`, `npm`
+- Community and contact: `discord`, `slack`, `telegram`, `qq`, `email`
+- Media and subscriptions: `x`, `bluesky`, `youtube`, `bilibili`, `rss`
+
+The theme provides the accessible name from the icon and does not accept `label`.
+
+## hero \{#hero\}
+
+- Type: object.
+- Default behavior: shows the site name, the description, and an action to the first article.
+
+| Field         | Type   | Default behavior                                                      |
+| ------------- | ------ | --------------------------------------------------------------------- |
+| `title`       | string | Uses the site `title`                                                 |
+| `description` | string | Uses the site `description`                                           |
+| `image`       | object | Shows no image on the right                                           |
+| `actions`     | array  | Generates an action to the first article in the first sidebar section |
+
+All fields above can be omitted. Without an `image`, the hero section is centered. When no site name is configured, the title falls back to the word for "docs" in the interface language. When there are no sidebar articles, no default action is generated.
+
+`title` and `description` only apply to the home page hero section and do not change the browser title or the HTML description tag.
+
+### image \{#hero-image\}
+
+| Field | Type   | Purpose                                  |
+| ----- | ------ | ---------------------------------------- |
+| `src` | string | Image address, required                  |
+| `alt` | string | Alternative text for the image, required |
+
+On desktop the image sits to the right of the text, and on narrow screens it moves above the title.
+
+### actions \{#hero-actions\}
+
+| Field   | Type   | Purpose                  |
+| ------- | ------ | ------------------------ |
+| `label` | string | Action text, required    |
+| `href`  | string | Target address, required |
+
+The first entry uses the primary button style, and the rest use the secondary style. Set `actions: []` to hide all actions.
+
+## features \{#features\}
+
+- Type: array.
+- Default: `[]`, which shows no feature descriptions.
+
+Each entry sets `title` and `description`. Both are strings and required, and the order follows the array.
+
+## layout \{#layout\}
+
+`layout` only affects the current page. The home page uses `home` by default, and other pages use `doc`.
+
+| Value   | Page behavior                                                                                              |
+| ------- | ---------------------------------------------------------------------------------------------------------- |
+| `doc`   | Shows the body and the outline. The navigation section decides the sidebar and the previous and next links |
+| `home`  | Shows the hero section and feature descriptions. A body replaces the default content                       |
+| `page`  | Keeps the top bar and body styles, hides both sidebars and the previous and next links                     |
+| `false` | Renders the body directly, with no theme layout                                                            |
+
+## locales \{#locales\}
+
+- Type: object.
+- Default behavior: no language scopes are defined and no language menu is shown.
+
+The theme tells single-language mode from multilingual mode by whether the root `content/index.mdx` declares `locales`, regardless of the number of language entries. Without it, the root file acts as the home page. With it, the root file only provides shared configuration and renders no page content. `layout`, `hero`, `features`, and the body have no effect on the root page.
+
+Declare language scopes in the root file:
+
+```yaml
+locales:
+  /zh/:
+    lang: zh-CN
+    label: 中文
+  /en/:
+    lang: en
+    label: English
+```
+
+Keys use a URL prefix that ends with a slash. `/zh/` covers `/zh` and its child pages, and does not match `/zhongwen`. Non-ASCII characters in a prefix need URL encoding.
+
+| Field   | Type   | Purpose                                                    |
+| ------- | ------ | ---------------------------------------------------------- |
+| `lang`  | string | HTML language tag, required, for example `zh-CN`           |
+| `label` | string | Language name in the menu, required, for example "Chinese" |
+
+Multilingual content lives in separate directories, and no scope uses the root path `/`. Language tags must be valid and unique.
+
+`locales` sets language attributes and the switch menu. It does not create pages and does not require a home page in a language directory. When you need a language home page, write `index.md` or `index.mdx` in that directory.
+
+The menu sorts automatically by display name, using a fixed English sort order, and by language tag when names are the same. The configuration order, the browser language, and the current page do not change the order. The theme decides the selected item from the current page URL and does not use the first menu item as the default language.
+
+The theme has built-in Chinese and English interfaces, and other languages use English interface text for now. Articles and menu names still show as configured, and the HTML uses the matching language tag. Shared pages that match no language scope use the site's language default, and the menu selects no language.
+
+Language settings do not create redirects. Without a redirect, visiting the root path shows a blank page. To open a language home page, set `redirects` in the site configuration. For a full example, see [Multilingual docs](./languages.mdx).
+
+## search \{#search\}
+
+- Type: `false` or a search configuration object.
+- Default behavior: uses local search when the site turns on the local index, and hides the search entry otherwise.
+
+Search settings go only on the root home page and are shared by all languages:
+
+```yaml
+search:
+  provider: local
+```
+
+`provider` accepts `local` and `algolia`. With `local`, you need `search: true` in `phyllo.config.ts`, or the build fails. Setting `search: false` in the theme hides the entry without changing the core index switch.
+
+When `provider` is `algolia`, fill in these parameters:
+
+```yaml
+search:
+  provider: algolia
+  options:
+    appId: YOUR_APP_ID
+    apiKey: YOUR_SEARCH_ONLY_API_KEY
+    indexName: your_docs
+```
+
+| Field       | Type   | Purpose                          |
+| ----------- | ------ | -------------------------------- |
+| `appId`     | string | Algolia application ID, required |
+| `apiKey`    | string | Public search key, required      |
+| `indexName` | string | Index name, required             |
+
+The site needs the `algoliasearch` package installed. All languages share these parameters, and the theme filters results by the current page language, with no need to set them again on each language home page. The remote index needs to store a `lang` field and allow filtering by that field.
+
+Algolia does not need the core local index. For configuration, crawler records, and troubleshooting, see [Configuring search](./search.mdx).
+
+## Shared site settings \{#site-settings\}
+
+The site name, description, and HTML language default go in `phyllo.config.ts`. Redirects, the local index, and head tags are configured here too, see [Site configuration reference](../../reference/configuration.mdx).
+
+The theme outputs the matching `html lang` for pages inside a language scope. All other pages use `lang` from the site configuration as the default.

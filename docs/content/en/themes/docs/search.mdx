@@ -1,0 +1,104 @@
+# Configuring search \{#search\}
+
+The docs theme provides a search dialog, a result list, and keyword highlighting, with support for both local search and Algolia. Search settings go together on the root home page `content/index.mdx` and are shared by all languages.
+
+## Local search \{#local-search\}
+
+Local search is deployed together with your site and needs no account or remote service. Turn on the index in `phyllo.config.ts`:
+
+```ts
+search: true,
+```
+
+After you save, the docs theme shows the search entry by default. You can also explicitly choose local search on the root home page:
+
+```yaml
+---
+search:
+  provider: local
+---
+```
+
+The two settings have separate jobs. `search: true` in the site configuration makes core generate the index. `search.provider` in the theme decides which query method the search box uses. If you explicitly choose `local` without turning on the index, the build fails.
+
+### Indexed content \{#indexed-content\}
+
+The index contains page titles, section headings, body text, code blocks, and descriptions from the source files. Content that appears only after a component runs does not enter the index. Search supports Chinese word segmentation, prefix matching, and slight spelling tolerance for English words.
+
+The index file is at `/_phyllo/search.json`. Upload it together with the rest of the build output when you publish. After you add or edit an article, the dev server and the build update the index.
+
+### Multilingual results \{#local-language\}
+
+After you set up [Multilingual docs](./languages.mdx), the theme selects the content directory from the language scope the current page belongs to. For example, a Chinese article queries the `zh` directory and an English article queries the `en` directory. You do not need to configure the search service again for each language.
+
+Shared pages outside every language scope search all content.
+
+## Algolia search \{#algolia\}
+
+Algolia uses a remote index. Your site needs an index built first, plus an application ID, a search key, and an index name. For the setup flow, see [Algolia DocSearch](https://docsearch.algolia.com/docs/what-is-docsearch).
+
+### Installation and configuration \{#algolia-configuration\}
+
+Install the query client in the site directory:
+
+```sh
+bun add algoliasearch
+```
+
+If the dev server is running, restart it after installing. Then configure the root home page:
+
+```yaml
+---
+search:
+  provider: algolia
+  options:
+    appId: YOUR_APP_ID
+    apiKey: YOUR_SEARCH_ONLY_API_KEY
+    indexName: your_docs
+---
+```
+
+Use a public search key for `apiKey` and never an admin key. The theme only calls the query API, and Algolia manages index crawling and updates.
+
+All languages share one set of parameters, so you do not fill in `indexName` on each language home page. Algolia does not use the core local index, so `search` in the site configuration can stay off.
+
+### Index records \{#records\}
+
+The theme reads records in the DocSearch format:
+
+```json
+{
+  "url": "https://docs.example.com/en/getting-started#prerequisites",
+  "lang": "en",
+  "hierarchy": {
+    "lvl0": "Guide",
+    "lvl1": "Getting started",
+    "lvl2": "Prerequisites"
+  },
+  "content": "Bun is required for development and the build."
+}
+```
+
+`url` and `hierarchy` are required, and `content` can be omitted. `url` supports HTTP, HTTPS, and in-site addresses that start with a single `/`. The result title uses `hierarchy.lvl1`, falling back to `lvl0` when it is not set. The section name comes from the deepest non-empty level and is not shown again when it matches the article title.
+
+When you configure the crawler, use `.doc-content` as the content selector, with heading levels matching `h1` through `h6` inside it. Navigation, sidebars, and the search dialog should not be collected as content.
+
+### Language filtering \{#algolia-language\}
+
+The crawler needs to read the page's `<html lang>` and save the value to `lang` in each record. The `attributesForFaceting` index setting needs to include `lang` so that results can be filtered by language. When filter fields already exist, append to the existing list.
+
+At query time, the theme adds a language filter for the current page. For example, Chinese pages use `lang:zh-CN` and English pages use `lang:en`. The field and value must match the crawler records, or search may return no results. For how to configure the index, see [Algolia filtering attributes](https://www.algolia.com/doc/api-reference/api-parameters/attributesForFaceting).
+
+When a page has no language attribute, the theme does not add a language filter. For how the framework and the theme output the language attribute, see [Multilingual docs](./languages.mdx).
+
+## Hiding the search entry \{#disable-search\}
+
+Set this on the root home page:
+
+```yaml
+search: false
+```
+
+This setting only hides the search entry in the docs theme. If the whole site does not need a local index, you can also turn off `search` in `phyllo.config.ts` to skip generating the index file.
+
+Once search is set up, continue with [Multilingual docs](./languages.mdx). When search returns no results, start with [Search problems](../../about/troubleshooting.mdx#search). When you need to build your own search interface, the API reference is in [Local search](../search.mdx).

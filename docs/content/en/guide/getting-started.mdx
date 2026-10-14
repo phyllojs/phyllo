@@ -1,0 +1,88 @@
+# Getting started \{#getting-started\}
+
+This page takes you from creating a site through five steps: installing Bun, installing the command line tool, creating a project, starting the dev server and editing an article. By the end you have an article you can open in a browser. The examples use the local theme generated at initialization and don't involve theme development.
+
+## Prerequisites \{#prerequisites\}
+
+Developing and building with Phyllo requires Bun 1.4 or later. Bun is a JavaScript runtime that runs Phyllo commands and installs project dependencies. For installation instructions, see the [Bun installation docs](https://bun.com/docs/installation).
+
+After installing, check the version in your terminal:
+
+```sh
+bun --version
+```
+
+The terminal prints the version number. For what Bun does in Phyllo, see [Why Bun](../about/faq.mdx#why-bun).
+
+## Install the command line tool \{#install-cli\}
+
+After a global install, you can create and preview sites from the terminal with the `phyllo` command:
+
+```sh
+bun add --global @phyllo/cli
+phyllo --version
+```
+
+The second command prints the Phyllo version. A global install only needs to run once. Each site still keeps its themes and dependencies in its own project.
+
+## Create a project \{#create-project\}
+
+The command below creates a project directory named `my-site`:
+
+```sh
+phyllo init my-site
+```
+
+Initialization asks two questions in turn: `Choose a theme` and `Theme name`. Choose **Custom theme** and enter `my-theme` as the name. If you're unsure, follow the example for now. You can change it later. The tool generates `themes/my-theme/` and connects it to the site as a local theme.
+
+After creation, enter the project directory and install dependencies:
+
+```sh
+cd my-site
+bun install
+```
+
+Articles live in `content/`, and site settings live in `phyllo.config.ts`. `bun install` installs the packages declared in the project dependencies.
+
+## Start the dev server \{#start-preview\}
+
+Run this in the project directory:
+
+```sh
+phyllo dev
+```
+
+The terminal shows `Phyllo → http://localhost:3000/`, where `localhost` means your own machine. Open that address and you'll see the site name and a **Getting started** link. Click the link to read the template article. The article address is `http://localhost:3000/getting-started`.
+
+Keep the terminal running while you preview. When you're done, press `Ctrl+C` in the terminal to stop the server.
+
+## Edit an article \{#edit-article\}
+
+Open `content/getting-started.mdx` in a text editor and replace the body with:
+
+```md
+# My first article
+
+This is my site, where I record what I learn and build.
+```
+
+The text after `#` is the article title, and the text below is the body. After you save the file, the browser updates the article content, and the article name in the navigation updates with it.
+
+This file is already an article you can reach by URL. Add more files in `content/` as you go, and each one adds a page.
+
+## About themes \{#themes\}
+
+The page right now has only basic typography, with styles from the local theme generated at initialization. Phyllo turns articles into pages. Layout and styles come from the theme.
+
+When you want ready-made navigation and article layout, you can [install the documentation theme](../themes/installation.mdx#npm-themes). When you want to design your own pages, keep editing the local theme. For details, see [Writing a theme](../themes/development.mdx).
+
+## Next steps \{#next-steps\}
+
+- [Project structure](./project-structure.mdx): learn what the generated files and directories are for.
+- [Pages and routing](./routing.mdx): how file paths decide page addresses.
+- [Writing articles](./writing.mdx): Markdown basics and using components.
+- [Site configuration](./configuration.mdx): change the site name, description and language.
+- [Deployment](./deployment.mdx): publish the site to a static hosting service.
+- [Command line tool](../reference/cli.mdx): a summary of commands and options.
+
+If you run into an error, check [Troubleshooting](../about/troubleshooting.mdx) first.

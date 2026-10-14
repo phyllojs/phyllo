@@ -1,0 +1,148 @@
+# FAQ \{#faq\}
+
+## Why Bun \{#why-bun\}
+
+Phyllo only supports the [Bun](https://bun.com/docs) runtime and does not offer a Node.js path.
+
+Bun and Node.js are both JavaScript runtimes. The difference is that Bun ships with all the tools you need for development and building. A Node.js project has to pick a tool for each task:
+
+| Task                    | Common choice in a Node.js project                   | Bun                            |
+| ----------------------- | ---------------------------------------------------- | ------------------------------ |
+| Package manager         | npm, Yarn, or pnpm                                   | `bun install`                  |
+| Running TypeScript      | tsx, ts-node, or transpiler settings in a build tool | Run TypeScript source directly |
+| Bundling and dev server | Vite, esbuild, or webpack                            | `Bun.build`, `Bun.serve`       |
+| Testing                 | Jest, Vitest, or `node:test`                         | `bun test`                     |
+
+With Bun, these capabilities come from one runtime, and the project does not maintain a separate version and configuration for each tool. Phyllo runs TypeScript source directly. The build and the dev server both use Bun's built-in APIs. No Node.js process is involved.
+
+Supporting both runtimes would mean verifying every dependency and API twice, and that cost would shift to framework maintenance. Phyllo only supports Bun, which keeps the maintenance work on the framework features themselves.
+
+## Why MDX \{#why-mdx\}
+
+READMEs, usage guides, and technical articles are often written in Markdown. Its syntax is simple and the source stays easy to read, which makes it a good fit for a site's content format.
+
+Real writing often needs more than the base syntax, such as a callout that flags a note before installation. Markdown has no callout syntax, so tools add one through extensions.
+
+### Differences across extensions \{#markdown-extensions\}
+
+The same callout looks different in each tool.
+
+[VitePress custom containers](https://vitepress.dev/guide/markdown#custom-containers) use the `:::` marker:
+
+```md
+::: tip
+Ciallo～(∠·ω< )⌒★
+:::
+```
+
+[Material for MkDocs admonitions](https://squidfunk.github.io/mkdocs-material/reference/admonitions/) use the `!!!` marker and require an indented body:
+
+```md
+!!! tip
+
+    Ciallo～(∠·ω< )⌒★
+```
+
+[GitHub Alerts](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts) declare the callout type inside a blockquote:
+
+```md
+> [!TIP]
+> Ciallo～(∠·ω< )⌒★
+```
+
+The markers and indentation rules all differ, so you have to memorize each one, and after switching tools you still have to check whether it works.
+
+Some tools also support extensions from other tools. For example, [VitePress supports GitHub Alerts](https://vitepress.dev/guide/markdown#github-flavored-alerts). These syntaxes are not supported by every Markdown tool. When you move to a tool that lacks the extension, callouts no longer render as expected, and you have to rewrite the content or install a plugin.
+
+### Framework code inside Markdown \{#framework-code\}
+
+Beyond callouts, some site frameworks also let you write [Vue](https://vuejs.org/) code directly in Markdown. [Valaxy](https://valaxy.site/guide/markdown#using-vue-in-markdown) and [Docsify](https://docsify.js.org/#/vue) both support this style for adding interactions to articles. Take a command line with a copy button. The entire snippet has to be written into the article:
+
+```md
+<script setup>
+  const command = 'bun add phyllo';
+
+  function copy() {
+    navigator.clipboard.writeText(command);
+  }
+</script>
+
+<div class="shell">
+  <code>{{ command }}</code>
+  <button type="button" @click="copy">Copy</button>
+</div>
+```
+
+The file still ends in `.md`, but its content mixes Markdown and Vue syntax. The editor treats it as a Markdown file. The Vue code gets no syntax highlighting, completion, or type hints, and formatters cannot lay it out either. Maintaining this code requires understanding script declarations and event directives, and plain Markdown tools cannot run it.
+
+### Markdown with JSX \{#markdown-and-jsx\}
+
+Phyllo uses [MDX](https://mdxjs.com/docs/what-is-mdx/) for articles with components. MDX combines Markdown and JSX and uses the `.mdx` extension. Plain text content can use `.md`, and content that needs JSX uses `.mdx`. The extension matches the syntax of the file.
+
+The same command line becomes a component, written directly in the MDX:
+
+```mdx
+export function Shell({ command }) {
+  return (
+    <div className="shell">
+      <code>{command}</code>
+      <button
+        type="button"
+        onClick={() => navigator.clipboard.writeText(command)}
+      >
+        Copy
+      </button>
+    </div>
+  );
+}
+
+<Shell command="bun add phyllo" />
+```
+
+JSX describes interfaces with HTML-like tags. Markdown already supports embedded HTML, and JSX looks close to it. JSX supports expressions and components, so it can both show static content and add interactions.
+
+Back to callouts: the [callout component](../themes/docs/index.mdx#content-components) in the docs theme uses the same type names as these syntaxes, so you do not have to memorize another set of markers when moving over. For example:
+
+- VitePress `::: warning` maps to `type="warning"`.
+- Material `!!! note` maps to `type="note"`.
+- GitHub `[!TIP]` maps to `type="tip"`.
+
+```mdx
+import { Callout } from 'phyllo-theme-docs';
+
+<Callout type="tip">Ciallo～(∠·ω< )⌒★</Callout>
+```
+
+`import` declares where the component comes from, and `type` sets the callout colors and the default title. Add `title` when you need a custom title. Other components follow the same import, tag, and attribute pattern. You only need to know what a component does and which attributes it takes, instead of memorizing another set of Markdown markers. For more complex logic, you can move the code into a separate component file and reference it by tag in the article.
+
+The MDX syntax rules do not depend on the site framework. When you switch frameworks, the components and their dependencies need to be adjusted for the new one, while the way you write Markdown and JSX carries over.
+
+## Why React \{#why-react\}
+
+As we all know, JSX is a syntax extension to JavaScript, and it compiles to plain function calls. Here is some JSX code:
+
+```jsx
+<span className="message">hello world</span>
+```
+
+And here is the compiled result:
+
+```js
+import { jsx as _jsx } from 'react/jsx-runtime';
+
+_jsx('span', { className: 'message', children: 'hello world' });
+```
+
+`_jsx` is a function provided by the JSX runtime: it turns the arguments into the corresponding JavaScript object.
+
+MDX combines Markdown and JSX, and its compiled output is the same kind of function call, executed by a JSX runtime. So the runtime is not limited to React, and in theory MDX can work with any JSX runtime.
+
+JSX was invented by React and later used or supported by many well-known projects, such as [Astro](https://astro.build/), [Hono](https://hono.dev/), and [Solid](https://www.solidjs.com/). They each make different trade-offs, and Phyllo went with React.
+
+React has the largest user base, plus the richest supply of components, tutorials, and Q&A, so it is easier to find answers when you run into problems. Many static site generators, such as [Docusaurus](https://docusaurus.io/) and [Gatsby](https://www.gatsbyjs.com/), are built on React as well. Developers who know other JSX runtimes read React code without friction. Going the other way, from React to projects like Solid, means getting used to their update models. Choosing the option with the most users also keeps the cost of maintaining themes and components lower.
+
+Phyllo handles server-side rendering, and the browser takes over from there. A theme is just a regular React component package, and article components and theme components are written the same way. Type hints and editor completion come from React's type definitions.
+
+React's update mechanism is not its strongest point, and fine-grained approaches like Solid perform better. Phyllo's output is static HTML rendered at build time, and the script the browser loads has a fixed size regardless of how much content there is. For a static site, ecosystem and ease of getting started matter more. Supporting several runtimes at once would mean verifying every integration separately, and that cost would shift to framework maintenance. Phyllo only supports React, which keeps the maintenance work on the framework features themselves.
+
+For specific errors or unexpected behavior, see [Troubleshooting](./troubleshooting.mdx).

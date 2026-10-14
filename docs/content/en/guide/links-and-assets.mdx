@@ -1,0 +1,75 @@
+# Links and assets \{#links-and-assets\}
+
+This page covers links between pages, external links, and how assets such as images are handled.
+
+## Linking to other pages \{#links\}
+
+Link between pages with relative file paths:
+
+```mdx
+[Installation guide](./guide/installation.mdx)
+```
+
+The path is relative to the current file. At build time, Phyllo rewrites `.md` and `.mdx` links to page URLs, so you do not need to write the final URL by hand. From `content/getting-started.mdx`, the link above points to `/guide/installation`.
+
+After you move or rename a page, links to it must be updated as well.
+
+## Linking to sections \{#anchors\}
+
+Append an anchor to the file path to jump to a specific section of the target page:
+
+```mdx
+[Prepare the environment](./guide/installation.mdx#prerequisites)
+```
+
+The target page must contain the matching anchor, for example `## Prepare the environment \{#prerequisites\}`. For how to write anchors, see [Writing articles](./writing.mdx#anchors).
+
+## External links \{#external-links\}
+
+Use the full URL for external sites:
+
+```mdx
+[Phyllo repository](https://github.com/xueelf/phyllo)
+```
+
+URLs starting with `/`, `#`, or `?` are kept as they are and are not rewritten.
+
+## Adding images \{#images\}
+
+Images use Markdown syntax, and the path is again relative to the current file:
+
+```mdx
+![Project preview](./images/preview.png)
+```
+
+The text in square brackets is the alt text. Screen readers read it, and it is also shown when the image fails to load.
+
+## The public directory \{#public\}
+
+`public/` holds files with fixed URLs, such as favicons, fonts, and images used by other systems. The file `public/logo.svg` is served at `/logo.svg`, and files are copied to the output directory unchanged. Reference these files with a root-relative path, for example `/logo.svg`.
+
+Images referenced by a page should go in `content/`. These assets go through the build pipeline, as described in the next section.
+
+## How assets are built \{#assets\}
+
+Images and attachments referenced by relative paths are built along with the page:
+
+- The file is copied to the output directory with a content hash in its name, so browsers can cache it for a long time.
+- References in the page are rewritten to the new URL.
+- A file referenced in several places shares a single copy.
+
+Reference paths are relative to the directory of the source file. When you move an article, move its assets along with it, or update the references. You can also import assets directly in components. The bundler handles those references.
+
+Files with fixed URLs that pages do not reference belong in `public/`.
+
+## Link checks \{#link-checks\}
+
+The build fails in the following cases:
+
+- A relative link points to a file outside the content directory.
+- A page has duplicate heading anchors.
+- A referenced image or other asset file does not exist.
+
+For other build errors, see [Troubleshooting](../about/troubleshooting.mdx).
+
+For how to write page metadata at the top of a file, see [Page metadata](./frontmatter.mdx).

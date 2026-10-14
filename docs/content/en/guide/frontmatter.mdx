@@ -1,0 +1,80 @@
+# Page metadata \{#frontmatter\}
+
+You can store information about the current page, such as its title and description, in a block of YAML at the top of a file. This block is called frontmatter, and the framework and themes define what its fields mean.
+
+## What frontmatter is \{#what-is-frontmatter\}
+
+Frontmatter sits at the top of the file, with a line of `---` above and below it:
+
+```md
+---
+title: Installation
+description: Installation steps and common questions.
+---
+
+# Installation guide \{#installation\}
+```
+
+It uses the YAML format, where levels are shown with space indentation and information is stored as `field: value`. Frontmatter only describes the page. The content goes after the closing `---`. If you omit frontmatter, the page is still generated as usual.
+
+## Setting the title \{#title\}
+
+`title` sets the page name, which themes use in the browser title and in navigation. The value is resolved in this order:
+
+1. The `title` in frontmatter.
+2. The first top-level heading in the content.
+3. The file name.
+
+When the `index` file of a directory has no title, the `title` from the site configuration is used. In the example above, the page name is "Installation", and the top-level heading in the content is still "Installation guide".
+
+## Setting the description \{#description\}
+
+`description` describes the current page and is used for the HTML `description` tag and search summaries. Themes use this field when rendering the description tag. When it is omitted, the `description` from the site configuration is used by default. The search index uses only this field and the content before the first heading. It does not fall back to the site description.
+
+The site's default description summarizes the whole site, while a page description can be more specific. For how the two relate, see [Site configuration reference](../reference/configuration.mdx#metadata).
+
+## Theme fields \{#theme-fields\}
+
+The framework reads only `title` and `description`. Other fields are kept as they are, and themes can interpret them in their own way. Themes can define their own fields, defaults, and validation rules.
+
+Which fields each theme reads is documented by that theme. See [Theme overview](../themes/overview.mdx).
+
+The same field can be used by several themes, so when you switch themes, adjust the fields to match the new theme's conventions.
+
+## Reading frontmatter in content \{#read-in-content\}
+
+MDX content can read the frontmatter fields of the current file directly:
+
+```mdx
+---
+title: Installation
+my-key: special field
+author:
+  name: Jane
+---
+
+# {frontmatter.title}
+
+{frontmatter['my-key']}, by {frontmatter.author.name}
+```
+
+`frontmatter` is a named export of the current file, and other modules can import it as well. When frontmatter is omitted, empty, or contains only comments, its value is an empty object. When a field name contains hyphens or uses a nested structure, access it as an object property.
+
+The `frontmatter` in a snippet belongs to the snippet itself. When a snippet needs to read from its host page, use [useFrontmatter](../reference/hooks.mdx#use-frontmatter), which reads the data of the page being rendered.
+
+The generated `.phyllo/mdx.d.ts` provides types for `frontmatter`. A site's `tsconfig.json` needs `.phyllo/*.d.ts` in its `include` array. New templates already include it, and existing sites need to add it.
+
+This way of reading values comes from the official MDX guide. See [Frontmatter](https://mdxjs.com/guides/frontmatter/).
+
+## Writing YAML \{#yaml\}
+
+YAML is sensitive to indentation and symbols, so keep the following in mind:
+
+- Indent with spaces, not tabs.
+- Quote text that contains colons or special characters, for example writing a date as `date: '2026-01-01'`.
+- Write booleans as `false`, not as the string `'false'`.
+- List items start with `-`, and items at the same level use the same indentation.
+
+When the build reports an error, check these points first. The error message points out the file and the field.
+
+Once the page metadata is set up, you can continue with [Deployment](./deployment.mdx).

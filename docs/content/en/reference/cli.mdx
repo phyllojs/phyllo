@@ -1,0 +1,127 @@
+# Command line tool \{#cli\}
+
+`@phyllo/cli` provides the Phyllo command line tool, with the command name `phyllo`. You use it to create sites, start the dev server, build the site, and generate theme templates.
+
+If you are setting up your first site, start with [Getting started](../guide/getting-started.mdx). This page collects the commands and options for reference.
+
+## Installation \{#installation\}
+
+Installing the command line tool globally is recommended, and the examples below all use the `phyllo` command. You need [Bun 1.4 or later](https://bun.com/docs/installation) first:
+
+```sh
+bun add --global @phyllo/cli
+phyllo --version
+```
+
+If the terminal says it cannot find `phyllo`, add the executable directory to `PATH` as described in the Bun installation instructions.
+
+## Creating a project \{#init\}
+
+`init` creates the project files and declares the framework, the command line tool, and the theme you choose as dependencies:
+
+```sh
+phyllo init my-site --theme phyllo-theme-docs
+cd my-site
+bun install
+```
+
+`my-site` is the project directory. Later dev, build, and sync commands run in the project root by default, which is the directory that contains `phyllo.config.ts`.
+
+When you omit the directory argument, `init` asks for the project name and uses `my-site` as the default. Use `phyllo init .` to initialize the current directory. The target directory must be empty or contain only `.git`. The directory name must work as an npm package name, using lowercase letters, digits, and hyphens, for example `my-site`.
+
+`--theme` or `-t` sets the theme package name. When you omit it, you can choose the official docs theme or a custom theme. If you choose a custom theme, enter the theme name, for example `my-theme`. The tool creates `themes/my-theme/`, uses the package name `phyllo-theme-my-theme`, and generates a basic layout.
+
+## Starting the dev server \{#dev\}
+
+```sh
+phyllo dev
+```
+
+The command reads the site configuration, starts the local dev server, and updates pages after you save a file. The terminal shows the address, and `Ctrl+C` stops the server.
+
+Use options to set the port and the listen address:
+
+```sh
+phyllo dev --port 3002 --host 0.0.0.0
+```
+
+| Option         | Default     | Description                                           |
+| -------------- | ----------- | ----------------------------------------------------- |
+| `--port`, `-p` | `3000`      | Server port. `0` assigns a port automatically         |
+| `--host`       | `localhost` | Listen address. `0.0.0.0` allows local network access |
+
+## Building the site \{#build\}
+
+```sh
+phyllo build
+```
+
+The command writes the static files to `dist/` by default and exits when done. For deployment steps, see [Deployment](../guide/deployment.mdx).
+
+`dist/` is a generated directory, not a place for files you write by hand. You can change the output location with `outdir`.
+
+## Syncing type declarations \{#sync\}
+
+```sh
+phyllo sync
+```
+
+The command reads the content and writes the page URLs and content directories to `.phyllo/types.d.ts`. The generated declarations provide editor hints for `usePages()` and the `directory` option of the query function.
+
+`dev` and `build` update this file automatically, so you do not need to run the command on its own.
+
+## Creating a theme \{#theme\}
+
+```sh
+phyllo theme themes/my-theme --package phyllo-theme-local
+```
+
+The command generates a theme package, TypeScript configuration, and layout components. `--package` or `-n` sets the package name, and when omitted, `phyllo-theme-<directory name>` is used.
+
+The generated theme must be added to the site dependencies before you can use it. For the steps, see [Customizing themes](../themes/customization.mdx) and [Writing a theme](../themes/development.mdx).
+
+## Command help \{#help\}
+
+`--help` lists the available commands, and each command has its own help too:
+
+```sh
+phyllo --help
+phyllo dev --help
+```
+
+## Specifying the site directory \{#directory\}
+
+`dev`, `build`, and `sync` accept an optional directory argument that defaults to the current directory:
+
+```sh
+phyllo build ./my-site
+```
+
+Relative paths are resolved from the current directory when you run the command. The target directory must contain `phyllo.config.ts` and have the site dependencies installed.
+
+## Using the project-local version \{#scripts\}
+
+Use the project-local installation when you need to pin the command line tool version for different sites or when a hosting platform builds the site automatically. The init tool already adds the command line tool to the project dependencies and provides these scripts:
+
+| Project script  | Command        |
+| --------------- | -------------- |
+| `bun run dev`   | `phyllo dev`   |
+| `bun run build` | `phyllo build` |
+| `bun run sync`  | `phyllo sync`  |
+
+Bun uses the project-local command line tool when it runs these scripts. You can reach other commands through `bun run phyllo`, for example `bun run phyllo --version`. In a project you created by hand, install the command line tool and the config entry with `bun add --dev @phyllo/cli @phyllo/core`.
+
+Running `phyllo` directly uses the global installation, and project scripts use the project-local version. Options after a script are passed to the command line tool, for example `bun run dev --port 3002`. The `run` in `bun run build` is required, since `bun build` is Bun's own bundling command.
+
+## Creating through Bun \{#create-project\}
+
+You can also create a project directly:
+
+```sh
+bun create phyllo my-site --theme phyllo-theme-docs
+cd my-site
+bun install
+bun run dev
+```
+
+`bun create phyllo` downloads and runs `create-phyllo`, so you do not need to install the global command line tool first. It uses the same init logic as `phyllo init`, and you can use either one.

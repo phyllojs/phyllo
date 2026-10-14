@@ -1,0 +1,46 @@
+# Page layouts \{#page-layout\}
+
+The docs theme provides different layouts depending on what a page is for. The home page uses `home` by default, and articles use `doc`. Only set `layout` in a page's frontmatter when you need to change the default.
+
+## Layout values \{#values\}
+
+| Value   | Page behavior                                                                                                            |
+| ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `doc`   | Shows the body and the outline. The navigation section it belongs to decides the sidebar and the previous and next links |
+| `home`  | Shows the home page hero and feature descriptions. A body replaces the default content                                   |
+| `page`  | Keeps the top bar and body styles, hides both sidebars, the breadcrumbs, and previous and next links                     |
+| `false` | Renders the body directly in `body`, with no theme layout                                                                |
+
+`false` is a boolean and takes no quotes.
+
+## Documentation pages \{#doc\}
+
+`doc` is the default layout for pages other than the home page. Once a page joins a navigation section, it shows that section's left sidebar and previous and next links, see [Organizing navigation](./navigation.mdx) for how to set this up.
+
+Pages that do not join any section keep only the top bar, the body, and the right outline, which suits a FAQ page.
+
+## Standalone pages \{#page\}
+
+For a page that only needs the top bar and the body, such as a project introduction, set:
+
+```md
+---
+layout: page
+---
+```
+
+The page keeps the body styles and hides both sidebars, the breadcrumbs, and previous and next links. `layout` only affects how the current page is laid out and does not change the page address.
+
+## Custom layout \{#custom-layout\}
+
+When you compose the whole page yourself in MDX, you can turn off the theme layout:
+
+```md
+---
+layout: false
+---
+```
+
+The body renders directly in `<body>`, with no top bar, sidebar, outline, breadcrumbs, or previous and next links. The body container and heading anchor buttons are not added either.
+
+The page still keeps the full document structure, with the title, meta information, and language attributes in effect. Build assets and global theme styles load as usual, and MDX interactions are not affected. Once the layout is settled, continue with [Changing colors](./styles.mdx).

@@ -1,0 +1,62 @@
+# Deployment \{#deployment\}
+
+Once your articles are ready, build the site, then deploy the generated files to a hosting service. Phyllo builds with Bun, and the output is static files, so hosting does not require Bun.
+
+## Building the site \{#build\}
+
+Run the build command in the project directory:
+
+```sh
+bun run build
+```
+
+When the terminal shows `Built … pages`, the build is complete and the output is in `dist/`. After changing an article, build again and upload the new `dist/`.
+
+## Output structure \{#output\}
+
+Page URLs map to output files one to one:
+
+| Page URL              | Output file               |
+| --------------------- | ------------------------- |
+| `/`                   | `index.html`              |
+| `/getting-started`    | `getting-started.html`    |
+| `/guide/installation` | `guide/installation.html` |
+
+Page assets live in the `_phyllo/` directory, and the build handles references to them automatically. Asset file names include a content hash, so you can safely configure long-term caching for them.
+
+## Hosting requirements \{#hosting\}
+
+Page URLs have no `.html` extension, so the hosting service must support extensionless URLs (clean URLs). A request for `/getting-started` returns `getting-started.html`, and a request for the root path returns `index.html`.
+
+Links inside the site start at `/`, so the site must be deployed at the domain root, for example `https://docs.example.com/`. Subpaths such as `/my-project/` do not work.
+
+Rewriting all requests to the home page makes articles unreachable. Keep the full directory structure from `dist/` when you upload.
+
+## Automatic builds \{#continuous-deployment\}
+
+If your articles live in a code repository, a hosting platform that supports Bun can build the site automatically after each commit. Set the working directory to the site root and configure the rest as follows:
+
+| Setting           | Value                           |
+| ----------------- | ------------------------------- |
+| Bun version       | 1.4 or later                    |
+| Install command   | `bun install --frozen-lockfile` |
+| Build command     | `bun run build`                 |
+| Publish directory | `dist`                          |
+
+`bun run build` uses the command line tool installed in the project, so the hosting platform does not need a global install. `--frozen-lockfile` installs dependencies from the lockfile and reports an error when the dependency declarations and the lockfile disagree. `bun.lock` must be committed to the repository.
+
+If the repository contains several projects, point the working directory at the directory that holds the site.
+
+## Checking after deployment \{#verify\}
+
+After publishing, confirm the following:
+
+- The home page and articles open directly by URL.
+- Articles display correctly after a refresh.
+- Navigation, images, and search results point to the right places.
+- Interactive components written with MDX respond correctly.
+- The language menu provided by the theme jumps to the matching translation.
+
+If the home page works but articles return 404, check the extensionless URL configuration first. If images are missing, check whether you uploaded the complete `dist/`. For other issues, see [Troubleshooting](../about/troubleshooting.mdx).
+
+After deployment, continue with [Theme overview](../themes/overview.mdx) to learn how to install and switch themes.

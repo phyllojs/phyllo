@@ -1,0 +1,67 @@
+# Changing colors \{#colors\}
+
+When you want to keep the existing layout and only adjust colors, you can override the theme's CSS variables in a custom stylesheet.
+
+## Overriding the accent color \{#accent-color\}
+
+Set the accent color in `public/custom.css`:
+
+```css
+:root {
+  --accent-color: #7c3aed;
+}
+```
+
+The stylesheet loads through `head.link` in the site configuration. When a `link` array already exists, add a stylesheet entry to it:
+
+```ts
+head: {
+  link: [
+    { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+    { rel: 'stylesheet', href: '/custom.css' },
+  ],
+},
+```
+
+Custom styles load after the theme styles, so they can override the theme variables. After you save, links, selected items, and home page actions use the new color.
+
+## Color variables \{#variables\}
+
+The docs theme provides these color variables:
+
+| Variable                    | Purpose                                                                  |
+| --------------------------- | ------------------------------------------------------------------------ |
+| `--docs-background`         | Page background                                                          |
+| `--docs-surface`            | Background for inline code, table headers, and disabled buttons          |
+| `--docs-surface-raised`     | Background for dropdown menus, the search dialog, and the mobile sidebar |
+| `--docs-code-background`    | Code block background                                                    |
+| `--docs-text`               | Body text color                                                          |
+| `--docs-text-strong`        | Color for headings and emphasized text                                   |
+| `--docs-text-muted`         | Color for descriptions and supporting information                        |
+| `--docs-border`             | Border and divider color                                                 |
+| `--docs-control-background` | Secondary button background and navigation item hover background         |
+| `--docs-control-hover`      | Secondary button hover background                                        |
+| `--docs-control-active`     | Secondary button pressed background                                      |
+| `--docs-accent`             | Color for links, selected item text, and the focus outline               |
+| `--docs-accent-background`  | Background for selected items and search keywords                        |
+| `--docs-on-accent`          | Text and icon color for primary buttons                                  |
+| `--docs-backdrop`           | Backdrop color for the search dialog                                     |
+
+Sidebar group headings and table headers use `--docs-text-strong`, and unselected navigation uses `--docs-text-muted`.
+
+## Light and dark modes \{#color-modes\}
+
+Light and dark mode share the same variables. The first value of `light-dark()` applies to light mode, the second to dark:
+
+```css
+:root {
+  --docs-control-background: light-dark(#e6eaf0, #293341);
+  --docs-control-hover: light-dark(#dce2ea, #344154);
+}
+```
+
+The interaction colors for links, selected items, and the primary action come from `--accent-color` by default. After changing it, check the text contrast in both modes, and also check hover, pressed, and keyboard focus states.
+
+When you only adjust colors and a small amount of styling, overriding CSS variables is the smallest change and makes it easier to follow theme updates. When you need to change the page structure or add your own components, use [Customizing themes](../customization.mdx) instead.
+
+Once the colors are set, continue with [Configuring search](./search.mdx).

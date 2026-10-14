@@ -1,0 +1,134 @@
+# Hooks reference \{#hooks-reference\}
+
+Hooks read site data, page data, and search results in React components. These functions all come from `phyllo` and work in themes and MDX components.
+
+Plain Markdown articles do not need these APIs. A Hook must be called at the top level of a component or a custom Hook. It cannot go inside a conditional branch, a loop, or an event callback.
+
+## useSite \{#use-site\}
+
+Read the shared site information:
+
+```tsx
+import { useSite } from 'phyllo';
+
+export function SiteName() {
+  const site = useSite();
+  return <span>{site.title}</span>;
+}
+```
+
+It returns `SiteData` with optional `title`, `description`, and `lang`. `search` is a boolean. `site.lang` comes from `lang` in the site configuration and is `undefined` when that field is not set. `site.search` being `true` means the site generates a local search index, and does not mean the theme shows a search entry.
+
+`useSite()` only returns the shared data from the site configuration. Themes read custom fields such as the navigation and home page content from the home page frontmatter. Those fields do not appear here.
+
+## usePage \{#use-page\}
+
+Read the current page:
+
+```tsx
+import { usePage } from 'phyllo';
+
+export function CurrentPage() {
+  const page = usePage();
+  return <a href={page.url}>{page.title}</a>;
+}
+```
+
+| Field         | Type                      | Description                                               |
+| ------------- | ------------------------- | --------------------------------------------------------- |
+| `url`         | `string`                  | Page URL, for example `/guide/start`                      |
+| `title`       | `string`                  | Frontmatter title, first level-1 heading, or file name    |
+| `description` | `string` or `undefined`   | Description of the current page, without the site default |
+| `filePath`    | `string` or `undefined`   | Source file path relative to the content directory        |
+| `frontmatter` | `Record<string, unknown>` | Configuration of the page being rendered                  |
+| `hasContent`  | `boolean`                 | Whether the source file contains body syntax              |
+
+`hasContent` ignores whitespace, comments, reference definitions, and standalone imports and exports. Images, code blocks, JSX, and expressions count as the body. It does not check whether components display content after they run.
+
+For the default root home page that has no source file, the fields are:
+
+- `filePath` is `undefined`.
+- `title` is an empty string.
+- `frontmatter` is `{}`.
+- `hasContent` is `false`.
+
+## useFrontmatter \{#use-frontmatter\}
+
+Read the frontmatter of the page being rendered. It returns an empty object when the page has no frontmatter:
+
+```tsx
+import { useFrontmatter } from 'phyllo';
+
+export function Summary() {
+  const { description } = useFrontmatter<{ description?: string }>();
+  return description ? <p>{description}</p> : null;
+}
+```
+
+The type argument provides editor hints and does not perform runtime validation. You can get the frontmatter of other pages through `usePages()`. When called inside a snippet, it reads the host page, and the snippet's own fields are read from `frontmatter` in the body. For the syntax, see [Page metadata](../guide/frontmatter.mdx#read-in-content).
+
+## usePages \{#use-pages\}
+
+Read the metadata list of all source pages:
+
+```tsx
+import { usePages } from 'phyllo';
+
+export function GuideLinks() {
+  const pages = usePages().filter(page =>
+    page.filePath.startsWith('en/guide/'),
+  );
+
+  return (
+    <ul>
+      {pages.map(page => (
+        <li key={page.url}>
+          <a href={page.url}>{page.title}</a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+It returns a read-only `ContentPage[]` with the same fields as `PageData`. `filePath` is always present, and `url` comes from the generated page URL. The list includes home pages that have a source file and does not create extra entries for redirects or the default home page without a source file. When a URL that has a source file is redirected, its metadata is still kept.
+
+Themes do their own directory filtering and use `page.filePath` to check directory boundaries. For example, `startsWith('en/')` does not match `english/`.
+
+This Hook does not load page bodies. Themes can sort the list themselves, and the order in the docs navigation does not change the original list.
+
+`.phyllo/types.d.ts` provides type hints that cover page URLs and content directories. Phyllo generates this file, and the dev server and the build update it automatically. To update it on its own, run `phyllo sync` in the site root. For usage, see [Syncing type declarations](./cli.mdx#sync).
+
+## useSearch \{#use-search\}
+
+`useSearch()` returns the query function. It sets up no subscription and loads no index:
+
+```ts
+const search = useSearch();
+
+const results = await search('MDX', {
+  directory: 'en',
+  limit: 20,
+});
+```
+
+A query returns `Promise<SearchResult[]>`. The theme manages loading states, error display, retries, input debouncing, and discarding stale results. For a complete search component example, see [Search](../themes/search.mdx).
+
+The options are:
+
+| Option      | Default     | Description                                                                                                 |
+| ----------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
+| `directory` | `undefined` | Return only pages under this content directory and all its subdirectories. When omitted, search all content |
+| `limit`     | `20`        | Maximum number of results, must be a positive integer                                                       |
+
+`directory` matches by directory boundary. Passing `en` matches `en/guide/x` and does not match `english`.
+
+The argument is a folder path relative to the content directory, for example `en/guide`. Paths have no leading or trailing slash and are not URL-encoded.
+
+The directories in a multilingual site depend on the theme. For example, when page URLs start with `/en`, pass `directory: 'en'`. The core does not detect languages and only filters by directory.
+
+Each result contains `url`, `title`, `heading`, `snippet`, and `terms`. `url` can include a section anchor, `heading` and `snippet` can be empty strings, and `terms` are plain text words you can use for highlighting.
+
+An empty string query means no search, and queries also return empty results when local search is off. Neither case loads the index. When arguments are invalid or loading the index or running the query fails, the query rejects the promise. Search only runs in the browser.
+
+The framework provides the local search query, and the theme owns the input, the popup, the result styles, and the interface states.

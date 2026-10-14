@@ -1,0 +1,160 @@
+# Organizing navigation \{#navigation\}
+
+Navigation for the docs theme goes in the frontmatter of the home page file, under the `nav` field. Each top-level section has its own sidebar, and clicking a section opens the first article in that sidebar.
+
+## Where navigation comes from \{#source\}
+
+Articles do not need navigation fields of their own. When a site splits languages by directory, each language has its own navigation on its home page. A page uses the navigation of its language, and falls back to the root home page navigation when that language has none, see [Multilingual docs](./languages.mdx).
+
+Navigation has two kinds of entries:
+
+- Top-level sections, which use `label` and `sidebar` and open the first article in the sidebar when clicked.
+- Plain links, which use `label` and `href` and go straight to the given address.
+
+## Adding an article \{#add-a-page\}
+
+After creating the article `content/installation.mdx`, add its address to a sidebar group:
+
+```md
+---
+nav:
+  - label: Guide
+    sidebar:
+      - label: Getting started
+        items:
+          - href: /getting-started
+          - href: /installation
+---
+```
+
+After saving, the sidebar lists articles in the order of `items`, and the previous and next links follow the same order.
+
+## Changing the display name \{#labels\}
+
+The sidebar uses the article title by default. Add a `label` to an entry when you need a shorter name:
+
+```yaml
+- href: /installation
+  label: Installation
+```
+
+The article title comes from `title` in the frontmatter. When it is not set, the theme uses the first level 1 heading in the body. For the field reference, see [Page metadata](../../guide/frontmatter.mdx).
+
+## Sidebar groups \{#groups\}
+
+A section can hold several groups, and a group uses `label` and `items`:
+
+```yaml
+nav:
+  - label: Guide
+    sidebar:
+      - label: Start
+        items:
+          - href: /getting-started
+      - label: Setup
+        items:
+          - href: /installation
+```
+
+## Nested groups \{#nested-groups\}
+
+Groups can be nested, which suits sections with a lot of content:
+
+```yaml
+nav:
+  - label: Guide
+    sidebar:
+      - label: Using the guide
+        items:
+          - label: Getting started
+            items:
+              - href: /getting-started
+          - label: Installation
+            items:
+              - href: /installation
+```
+
+Groups use `label` and `items`, and articles use `href` with an optional `label`. An entry cannot set `href` and `items` at the same time. The sidebar expands all groups by default, and indentation shows the nesting level.
+
+The breadcrumbs above the article follow the group hierarchy, for example "Overview / Using the guide / Installation". Groups only affect how navigation is displayed and do not change page addresses.
+
+## Top-level sections \{#sections\}
+
+Use several entries under `nav` when you need more than one top-level section:
+
+```yaml
+nav:
+  - label: Guide
+    sidebar:
+      - label: Getting started
+        items:
+          - href: /getting-started
+  - label: Reference
+    sidebar:
+      - label: Configuration
+        items:
+          - href: /configuration
+```
+
+Clicking "Reference" opens the first article in that section and switches the sidebar. This list decides which section an article belongs to, independent of its folder. An article can belong to only one section.
+
+## Plain page links \{#page-links\}
+
+Pages such as a FAQ or a project introduction can go directly in the top bar:
+
+```yaml
+- label: FAQ
+  href: /about/faq
+```
+
+These pages have no sidebar and no previous or next links, but they keep the top bar, the body, and the right outline. If a link points to an article that already belongs to a sidebar, that sidebar still shows.
+
+## Top-level dropdowns \{#dropdowns\}
+
+When there are many top-level sections, use `items` to collect them into a dropdown menu:
+
+```yaml
+nav:
+  - label: Docs
+    items:
+      - label: Guide
+        sidebar:
+          - label: Getting started
+            items:
+              - href: /getting-started
+      - label: FAQ
+        href: /about/faq
+```
+
+Dropdowns support one level only, and a top-level entry chooses one of `href`, `sidebar`, and `items`. Dropdown items use `href` or `sidebar`.
+
+## External links \{#links\}
+
+Repository and community links go in `links` on the root home page `content/index.mdx` and are shared by all languages:
+
+```yaml
+links:
+  - icon: github
+    href: https://github.com/your-name/your-project
+```
+
+The links appear in the top bar as icons, with `icon` naming the icon and `href` giving the address. No `label` is needed. Available icons:
+
+- Code hosting and packages: `github`, `gitlab`, `gitee`, `npm`
+- Community and contact: `discord`, `slack`, `telegram`, `qq`, `email`
+- Media and subscriptions: `x`, `bluesky`, `youtube`, `bilibili`, `rss`
+
+## Navigation validation \{#validation\}
+
+An `href` in the sidebar must be an in-site page address, with no trailing slash except for `/`. The page it points to must exist. Navigation organizes articles by link and does not limit the directory or language an article lives in.
+
+These cases fail the build:
+
+- A section, group, or dropdown is empty.
+- A page address in the sidebar does not exist.
+- The same article appears in two sections.
+- A group is missing `label` or `items`.
+
+Articles that do not join any section can still be visited and searched, they just have no sidebar and no previous and next links.
+
+Once navigation is set up, continue with [Customizing the home page](./homepage.mdx).

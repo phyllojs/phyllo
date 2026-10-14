@@ -1,0 +1,64 @@
+# Pages and routing \{#routing\}
+
+Every file in `content/` generates a page, and the file's relative path determines the page URL. This page explains the URL rules and common conflicts.
+
+## Creating a page \{#create-page\}
+
+Create a file in the content directory with a name ending in `.mdx` or `.md`, and you have added a page. For example, the contents of `content/hello.mdx` are:
+
+```mdx
+# Hello, Phyllo
+
+This is my first article.
+```
+
+After you save the file, the dev server serves the page at `/hello`. Delete the file, and the page disappears. For the difference between the two extensions, see [Writing articles](./writing.mdx).
+
+Articles can be grouped into directories by chapter:
+
+```text
+content/
+├── guide/
+│   ├── configuration.mdx
+│   └── installation.mdx
+├── getting-started.mdx
+└── index.mdx
+```
+
+Directory names become part of the page URL. Moving a file changes its URL, and links to it must be updated as well. To keep an old URL working, add a redirect in the site configuration. See [Site configuration reference](../reference/configuration.mdx#redirects).
+
+## Files and page URLs \{#page-urls\}
+
+The file path determines the page URL, and the extension is omitted from the URL:
+
+| Source file                      | Page URL              |
+| -------------------------------- | --------------------- |
+| `content/index.mdx`              | `/`                   |
+| `content/getting-started.mdx`    | `/getting-started`    |
+| `content/guide/installation.mdx` | `/guide/installation` |
+| `content/guide/index.mdx`        | `/guide`              |
+
+URLs start with `/` and have no trailing slash except for the root path. `.md` and `.mdx` files follow the same URL rules.
+
+## index files \{#index-files\}
+
+`index.md` or `index.mdx` maps to the URL of its directory, and the file name does not appear in the URL. The `index` file in the root directory maps to `/`, and `guide/index` maps to `/guide`.
+
+To give a directory a landing page, write the content in its `index` file. No extra configuration is needed.
+
+## URL conflicts \{#conflicts\}
+
+The following cases produce the same URL and cause the build to fail:
+
+- A `.md` and an `.mdx` file with the same name in the same directory.
+- `content/guide.mdx` and `content/guide/index.mdx`.
+
+The error message includes the conflicting URL and the source files involved. While the dev server is running, only the conflicting URL returns an error, and other pages load normally.
+
+The path prefix `/_phyllo/` is reserved for build assets and cannot be used as a content directory name. An explicit redirect takes precedence over a content page with the same URL. For the rules, see [Site configuration reference](../reference/configuration.mdx#redirects).
+
+## File name recommendations \{#file-names\}
+
+Use lowercase English words for file names, separated by hyphens, for example `getting-started.mdx`. Article titles can use any language, and the title does not have to match the file name. This keeps encoded characters out of URLs and makes them easier to type in links and in the terminal.
+
+For how to write content, see [Writing articles](./writing.mdx).
