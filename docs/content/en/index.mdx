@@ -1,0 +1,168 @@
+---
+nav:
+  - label: Guide
+    sidebar:
+      - label: Start
+        items:
+          - href: /en/guide/introduction
+          - href: /en/guide/getting-started
+          - href: /en/guide/project-structure
+      - label: Basics
+        items:
+          - href: /en/guide/configuration
+          - href: /en/guide/routing
+          - href: /en/guide/writing
+          - href: /en/guide/links-and-assets
+          - href: /en/guide/frontmatter
+      - label: Advanced
+        items:
+          - href: /en/guide/deployment
+  - label: Themes
+    sidebar:
+      - label: Using themes
+        items:
+          - href: /en/themes/overview
+          - href: /en/themes/installation
+      - label: Documentation theme
+        items:
+          - href: /en/themes/docs
+          - href: /en/themes/docs/navigation
+          - href: /en/themes/docs/homepage
+          - href: /en/themes/docs/layout
+          - href: /en/themes/docs/styles
+          - href: /en/themes/docs/search
+          - href: /en/themes/docs/languages
+          - href: /en/themes/docs/configuration
+      - label: Developing themes
+        items:
+          - href: /en/themes/customization
+          - href: /en/themes/development
+          - href: /en/themes/search
+  - label: Reference
+    sidebar:
+      - label: Configuration and APIs
+        items:
+          - href: /en/reference/configuration
+          - href: /en/reference/hooks
+          - href: /en/reference/cli
+  - label: About
+    items:
+      - label: FAQ
+        href: /en/about/faq
+      - label: Troubleshooting
+        href: /en/about/troubleshooting
+      - label: Logo
+        href: /en/about/logo
+hero:
+  title: |
+    Start with words,
+    each line a chapter.
+  description: Phyllo is a static site framework built with Bun, for writing articles in Markdown or MDX.
+  actions:
+    - label: Get started
+      href: /en/guide/getting-started
+    - label: Write a theme
+      href: /en/themes/development
+---
+
+import { Hero } from 'phyllo-theme-docs';
+
+import Button from '../components/Button';
+import Cards from '../components/Cards';
+import Row from '../components/Row';
+import Section from '../components/Section';
+
+<Hero />
+
+<Section title="From content to a site">
+  <Row title="Markdown and JSX" href="/en/guide/writing" label="Writing guide">
+    Articles are saved as `.md` or `.mdx` files, and the extension decides the syntax. `.mdx` supports React's JSX, so you can define components and write expressions. Components render to static HTML at build time.
+
+    ```mdx
+    import { useEffect, useState } from 'react';
+
+    const getTime = () =>
+      new Date().toLocaleTimeString('zh-CN', {
+        timeZone: 'Asia/Shanghai',
+      });
+
+    export function Clock() {
+      const [time, setTime] = useState('Loading…');
+
+      useEffect(() => {
+        const timer = setInterval(() => setTime(getTime()), 1000);
+
+        setTime(getTime());
+        return () => clearInterval(timer);
+      }, []);
+
+      return <time>{time}</time>;
+    }
+
+    Current **Beijing time**: <Clock />
+    ```
+
+  </Row>
+
+  <Row reverse title="Themes and styles" href="/en/themes/customization" label="Customizing themes">
+    The framework ships no built-in components. The interface and all styles come from the theme and can be fully customized. Themes can be published to npm for installation, or written in a local directory.
+
+    ```tsx
+    import { HeadResources, usePage, useSite } from 'phyllo';
+
+    export default function Layout({ children }) {
+      const site = useSite();
+      const page = usePage();
+
+      return (
+        <html lang={site.lang ?? 'en'}>
+          <head>
+            <HeadResources />
+            <title>{page.title}</title>
+          </head>
+          <body>{children}</body>
+        </html>
+      );
+    }
+    ```
+
+  </Row>
+</Section>
+
+<Section title="Out of the box">
+  <Cards
+    items={[
+      {
+        title: 'Bun native',
+        text: 'The dev server and the build use Bun directly, with no extra build toolchain.',
+      },
+      {
+        title: 'MDX writing',
+        text: 'Markdown articles gain interactivity with JSX components and expressions.',
+      },
+      {
+        title: 'Custom themes',
+        text: 'Themes are built as React components. Use an official theme or write your own.',
+      },
+      {
+        title: 'TypeScript support',
+        text: 'Site configuration and theme APIs are typed for editor completion and checks.',
+      },
+      {
+        title: 'Local search',
+        text: 'The build generates a site index, and search runs in the browser with no external service.',
+      },
+      {
+        title: 'Static output',
+        text: 'The build outputs plain static files that can be hosted on any static service.',
+      },
+    ]}
+  />
+</Section>
+
+<Section title="Get started">
+  <div className="site-cta">
+    <p>Start with a single article and build your site.</p>
+    <Button href="/en/guide/introduction" label="Start reading" primary />
+  </div>
+</Section>

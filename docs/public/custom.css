@@ -1,0 +1,194 @@
+/* 站点自定义样式，通过站点配置的 head.link 引入。 */
+
+.docs-shell.is-home {
+  overflow-x: clip;
+}
+
+.docs-home.home-content > .site-section {
+  max-width: none;
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+.site-section {
+  padding: 5rem 0;
+  border-top: 1px solid var(--docs-border);
+}
+
+.site-section .site-wrap {
+  max-width: calc(1080px + 4rem);
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.site-section .site-section-title {
+  margin: 0;
+  color: var(--docs-text-muted);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  text-align: center;
+}
+
+.site-section .site-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
+  margin-top: 4rem;
+}
+
+.site-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.site-row.is-reverse {
+  grid-template-columns: 1fr 1.5fr;
+}
+
+.site-row:not(.is-reverse) .site-row-code {
+  order: -1;
+}
+
+.site-row .site-row-text,
+.site-row .site-row-code {
+  min-width: 0;
+}
+
+.site-row .site-row-code pre {
+  margin: 0;
+}
+
+.site-row .site-row-title {
+  margin: 0;
+  color: var(--docs-text-strong);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.site-row .site-row-text p {
+  margin: 0.875rem 0 0;
+  font-size: 1rem;
+}
+
+/* 操作按钮，规格与主题 hero 按钮一致 */
+.site-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.125rem;
+  border-radius: var(--control-radius);
+  background: var(--docs-control-background);
+  color: var(--docs-text-strong);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.site-row .site-link {
+  margin-top: 1.5rem;
+}
+
+.site-link:hover {
+  background: var(--docs-control-hover);
+}
+
+.site-link:active {
+  background: var(--docs-control-active);
+}
+
+.site-link.is-primary {
+  background: var(--accent-color);
+  color: var(--docs-on-accent);
+}
+
+.site-link.is-primary:hover {
+  background: color-mix(in oklab, var(--accent-color), black 12%);
+}
+
+.site-link.is-primary:active {
+  background: color-mix(in oklab, var(--accent-color), black 22%);
+}
+
+.site-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.site-cards .site-card {
+  padding: 1.5rem;
+  border: 1px solid var(--docs-border);
+  border-radius: 0.75rem;
+  background: var(--docs-surface-raised);
+}
+
+.site-cards .site-card-title {
+  margin: 0;
+  color: var(--docs-text-strong);
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.site-cards .site-card-text {
+  margin: 0.5rem 0 0;
+  color: var(--docs-text-muted);
+  font-size: 0.875rem;
+}
+
+.site-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  text-align: center;
+}
+
+.site-cta > p {
+  max-width: 30rem;
+  margin: 0;
+  color: var(--docs-text-muted);
+}
+
+@media (max-width: 1024px) {
+  .site-row,
+  .site-row.is-reverse {
+    grid-template-columns: 1fr;
+  }
+
+  .site-row:not(.is-reverse) .site-row-code {
+    order: 0;
+  }
+
+  .site-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .site-section {
+    padding: 4rem 0;
+  }
+
+  .site-section .site-section-title {
+    font-size: 1.75rem;
+  }
+
+  .site-row .site-row-title {
+    font-size: 1.5rem;
+  }
+
+  .site-cards {
+    grid-template-columns: 1fr;
+  }
+}

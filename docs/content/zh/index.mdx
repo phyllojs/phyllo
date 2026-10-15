@@ -1,0 +1,167 @@
+---
+nav:
+  - label: 指南
+    sidebar:
+      - label: 开始
+        items:
+          - href: /zh/guide/introduction
+          - href: /zh/guide/getting-started
+          - href: /zh/guide/project-structure
+      - label: 基础
+        items:
+          - href: /zh/guide/configuration
+          - href: /zh/guide/routing
+          - href: /zh/guide/writing
+          - href: /zh/guide/links-and-assets
+          - href: /zh/guide/frontmatter
+      - label: 进阶
+        items:
+          - href: /zh/guide/deployment
+  - label: 主题
+    sidebar:
+      - label: 使用主题
+        items:
+          - href: /zh/themes/overview
+          - href: /zh/themes/installation
+      - label: 文档主题
+        items:
+          - href: /zh/themes/docs
+          - href: /zh/themes/docs/navigation
+          - href: /zh/themes/docs/homepage
+          - href: /zh/themes/docs/layout
+          - href: /zh/themes/docs/styles
+          - href: /zh/themes/docs/search
+          - href: /zh/themes/docs/languages
+          - href: /zh/themes/docs/configuration
+      - label: 开发主题
+        items:
+          - href: /zh/themes/customization
+          - href: /zh/themes/development
+          - href: /zh/themes/search
+  - label: 参考
+    sidebar:
+      - label: 配置与接口
+        items:
+          - href: /zh/reference/configuration
+          - href: /zh/reference/hooks
+          - href: /zh/reference/cli
+  - label: 关于
+    items:
+      - label: 常见问题
+        href: /zh/about/faq
+      - label: 故障排查
+        href: /zh/about/troubleshooting
+      - label: 品牌标识
+        href: /zh/about/logo
+hero:
+  title: |
+    以文字为始，
+    让表达自成篇章。
+  description: Phyllo 是一个使用 Bun 开发和构建的静态站点框架，用 Markdown 或 MDX 编写文章。
+  actions:
+    - label: 快速上手
+      href: /zh/guide/getting-started
+    - label: 编写主题
+      href: /zh/themes/development
+---
+
+import { Hero } from 'phyllo-theme-docs';
+
+import Button from '../components/Button';
+import Cards from '../components/Cards';
+import Row from '../components/Row';
+import Section from '../components/Section';
+
+<Hero />
+
+<Section title="从内容到站点">
+  <Row title="Markdown 与 JSX" href="/zh/guide/writing" label="写作指南">
+    文章保存为 `.md` 或 `.mdx` 文件，扩展名决定语法。`.mdx` 支持 React 的 JSX，可以定义组件、写表达式。组件在构建时渲染为静态 HTML。
+
+    ```mdx
+    import { useEffect, useState } from 'react';
+
+    const getTime = () => new Date().toLocaleTimeString('zh-CN', {
+      timeZone: 'Asia/Shanghai',
+    });
+
+    export function Clock() {
+      const [time, setTime] = useState('加载中…');
+
+      useEffect(() => {
+        const timer = setInterval(() => setTime(getTime()), 1000);
+
+        setTime(getTime());
+        return () => clearInterval(timer);
+      }, []);
+
+      return <time>{time}</time>;
+    }
+
+    当前**北京时间**为：<Clock />
+    ```
+
+  </Row>
+
+  <Row reverse title="主题与样式" href="/zh/themes/customization" label="自定义主题">
+    框架不内置组件，界面和样式全部来自主题，可以完全自定义。主题可以发布到 npm 供安装使用，也可以放在本地目录编写。
+
+    ```tsx
+    import { HeadResources, usePage, useSite } from 'phyllo';
+
+    export default function Layout({ children }) {
+      const site = useSite();
+      const page = usePage();
+
+      return (
+        <html lang={site.lang ?? 'zh-CN'}>
+          <head>
+            <HeadResources />
+            <title>{page.title}</title>
+          </head>
+          <body>{children}</body>
+        </html>
+      );
+    }
+    ```
+
+  </Row>
+</Section>
+
+<Section title="开箱即用">
+  <Cards
+    items={[
+      {
+        title: 'Bun 原生',
+        text: '开发服务器和构建直接使用 Bun，不需要额外的构建工具链。',
+      },
+      {
+        title: 'MDX 写作',
+        text: 'Markdown 文章中可以使用 JSX 组件和表达式，为文章加入交互。',
+      },
+      {
+        title: '自定义主题',
+        text: '主题用 React 组件实现，可以使用官方主题，也可以自行编写。',
+      },
+      {
+        title: 'TypeScript 支持',
+        text: '站点配置和主题接口都带类型定义，编辑器可以补全并检查错误。',
+      },
+      {
+        title: '本地搜索',
+        text: '构建时生成站点索引，搜索在浏览器内完成，不需要外部服务。',
+      },
+      {
+        title: '静态产物',
+        text: '构建输出纯静态文件，可以托管在任意静态服务上。',
+      },
+    ]}
+  />
+</Section>
+
+<Section title="开始使用">
+  <div className="site-cta">
+    <p>从一篇文章开始，构建你的站点。</p>
+    <Button href="/zh/guide/introduction" label="开始阅读" primary />
+  </div>
+</Section>
