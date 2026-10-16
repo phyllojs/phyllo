@@ -37,7 +37,7 @@
     "eslint": "^10.12.0",
     "husky": "^9.1.7",
     "prettier": "^3.9.10",
-    "prettier-plugin-sort": "^1.1.0",
+    "prettier-plugin-sort": "^1.1.2",
     "typescript-eslint": "^8.67.0"
   },
   "peerDependencies": {
