@@ -36,7 +36,7 @@
     "@types/react-dom": "^19.2.0",
     "eslint": "^10.8.1",
     "husky": "^9.1.7",
-    "prettier": "^3.9.6",
+    "prettier": "^3.9.10",
     "prettier-plugin-sort": "^1.1.0",
     "typescript-eslint": "^8.67.0"
   },
