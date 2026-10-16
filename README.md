@@ -55,7 +55,7 @@ Static files are written to `dist/`.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on [GitHub](https://github.com/xueelf/phyllo).
+Bug reports and pull requests are welcome on [GitHub](https://github.com/phyllojs/phyllo).
 
 ## License
 

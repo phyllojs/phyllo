@@ -1,13 +1,13 @@
 {
   "private": true,
   "description": "A Bun-only framework for building documentation sites and blogs with Markdown and MDX.",
-  "homepage": "https://github.com/xueelf/phyllo#readme",
+  "homepage": "https://github.com/phyllojs/phyllo#readme",
   "bugs": {
-    "url": "https://github.com/xueelf/phyllo/issues"
+    "url": "https://github.com/phyllojs/phyllo/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xueelf/phyllo.git"
+    "url": "git+https://github.com/phyllojs/phyllo.git"
   },
   "license": "MIT",
   "author": "Yuki <admin@yuki.sh>",

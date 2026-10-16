@@ -15,7 +15,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xueelf/phyllo.git",
+    "url": "git+https://github.com/phyllojs/phyllo.git",
     "directory": "packages/phyllo"
   },
   "license": "MIT",

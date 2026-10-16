@@ -201,7 +201,7 @@ test('导航与面包屑', () => {
           },
         ],
       },
-      { label: 'GitHub', href: 'https://github.com/xueelf/phyllo' },
+      { label: 'GitHub', href: 'https://github.com/phyllojs/phyllo' },
     ],
   };
   const pages = [
@@ -230,7 +230,7 @@ test('导航与面包屑', () => {
 
   expect(data.nav[1]).toMatchObject({
     label: 'GitHub',
-    href: 'https://github.com/xueelf/phyllo',
+    href: 'https://github.com/phyllojs/phyllo',
   });
 });
 

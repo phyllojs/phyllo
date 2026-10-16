@@ -55,7 +55,7 @@ bun run build
 
 ## 参与贡献
 
-问题反馈和代码贡献请提交到 [GitHub](https://github.com/xueelf/phyllo)。
+问题反馈和代码贡献请提交到 [GitHub](https://github.com/phyllojs/phyllo)。
 
 ## 许可证
 
