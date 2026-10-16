@@ -27,7 +27,7 @@
     "typecheck": "tsc --noEmit && bun run --workspaces --if-present typecheck"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.2.2",
+    "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
     "@commitlint/types": "^21.2.0",
     "@eslint/js": "^10.0.1",
