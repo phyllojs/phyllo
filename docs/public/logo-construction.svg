@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-82 -32 284 210" role="img" aria-labelledby="title desc">
+<title id="title">Phyllo: circular construction</title>
+<desc id="desc">Blue regions A, B and C form the logo. All curved edges are circular arcs. Two concentric pairs have a radius difference of 5. O1 to O5 mark the five main circle centers.</desc>
+<style>
+  :root { color-scheme: light dark; }
+  .background { fill: #fff; }
+  .guide { stroke: #8a94a5; }
+  .outline { stroke: #2563eb; }
+  .sheet { fill: #2563eb; fill-opacity: .18; }
+  .round { stroke: #a84910; }
+  .contact { fill: #a84910; }
+  .label { fill: #354154; font-family: ui-sans-serif, system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #191b21; }
+    .guide { stroke: #8993a3; }
+    .outline { stroke: #85aeff; }
+    .sheet { fill: #85aeff; fill-opacity: .2; }
+    .round { stroke: #f4aa72; }
+    .contact { fill: #f4aa72; }
+    .label { fill: #e5e9f1; }
+  }
+</style>
+<rect class="background" x="-82" y="-32" width="284" height="210"/>
+<path class="sheet" d="M13.8189 16.48592 A65 65 0 0 1 65 80 L65 114 L16.07319 77.99726 A10 10 0 0 1 12 69.94288 L12 17.95163 A1.5 1.5 0 0 1 13.8189 16.48592 Z"/>
+<path class="sheet" d="M61.17053 44.11127 A59 59 0 0 1 97.22609 21.99205 A1.5 1.5 0 0 1 99 23.46682 L99 62 A52.58621 52.58621 0 0 1 70 109 L70 80 A70 70 0 0 0 61.05284 45.75746 A1.5 1.5 0 0 1 61.17053 44.11127 Z"/>
+<path class="sheet" d="M104.78378 53.91729 A57 57 0 0 1 116.05138 49.27668 A1.5 1.5 0 0 1 117.97043 50.76079 A68.65319 68.65319 0 0 1 72.24262 113.46885 A57.58621 57.58621 0 0 0 104 62 L104 55.23526 A1.5 1.5 0 0 1 104.78378 53.91729 Z"/>
+<g class="guide" fill="none" stroke-width=".4">
+<circle cx="0" cy="80" r="65"/>
+<circle cx="0" cy="80" r="70"/>
+<circle cx="108" cy="80" r="59"/>
+<circle cx="46.41379" cy="62" r="52.58621"/>
+<circle cx="46.41379" cy="62" r="57.58621"/>
+<circle cx="132" cy="104" r="57"/>
+<circle cx="49.34681" cy="48.74604" r="68.65319"/>
+<path d="M-75 80H185 M12 10V115 M65 80V120 M70 80V120 M99 22V62 M104 54V62" stroke-dasharray="1.5 2"/>
+</g>
+<path class="outline" d="M13.8189 16.48592 A65 65 0 0 1 65 80 L65 114 L16.07319 77.99726 A10 10 0 0 1 12 69.94288 L12 17.95163 A1.5 1.5 0 0 1 13.8189 16.48592 Z" fill="none" stroke-width=".5"/>
+<path class="outline" d="M61.17053 44.11127 A59 59 0 0 1 97.22609 21.99205 A1.5 1.5 0 0 1 99 23.46682 L99 62 A52.58621 52.58621 0 0 1 70 109 L70 80 A70 70 0 0 0 61.05284 45.75746 A1.5 1.5 0 0 1 61.17053 44.11127 Z" fill="none" stroke-width=".5"/>
+<path class="outline" d="M104.78378 53.91729 A57 57 0 0 1 116.05138 49.27668 A1.5 1.5 0 0 1 117.97043 50.76079 A68.65319 68.65319 0 0 1 72.24262 113.46885 A57.58621 57.58621 0 0 0 104 62 L104 55.23526 A1.5 1.5 0 0 1 104.78378 53.91729 Z" fill="none" stroke-width=".5"/>
+<g class="round" fill="none" stroke-width=".45">
+<circle cx="13.5" cy="17.95163" r="1.5"/>
+<circle cx="97.5" cy="23.46682" r="1.5"/>
+<circle cx="62.36111" cy="45.0237" r="1.5"/>
+<circle cx="116.47108" cy="50.71677" r="1.5"/>
+<circle cx="105.5" cy="55.23526" r="1.5"/>
+<circle cx="22" cy="69.94288" r="10"/>
+</g>
+<path class="guide" d="M-2 80h4 M0 78v4" fill="none" stroke-width=".6"/>
+<text class="label" x="-14" y="87" font-size="7">O1</text>
+<path class="guide" d="M106 80h4 M108 78v4" fill="none" stroke-width=".6"/>
+<text class="label" x="113" y="88" font-size="7">O2</text>
+<path class="guide" d="M44.41379 62h4 M46.41379 60v4" fill="none" stroke-width=".6"/>
+<text class="label" x="30.41379" y="67" font-size="7">O3</text>
+<path class="guide" d="M130 104h4 M132 102v4" fill="none" stroke-width=".6"/>
+<text class="label" x="136" y="111" font-size="7">O4</text>
+<path class="guide" d="M47.34681 48.74604h4 M49.34681 46.74604v4" fill="none" stroke-width=".6"/>
+<text class="label" x="33.34681" y="44.74604" font-size="7">O5</text>
+<text class="label" x="30" y="55" font-size="9" text-anchor="middle">A</text>
+<text class="label" x="82" y="54" font-size="9" text-anchor="middle">B</text>
+<text class="label" x="109" y="71" font-size="9" text-anchor="middle">C</text>
+</svg>

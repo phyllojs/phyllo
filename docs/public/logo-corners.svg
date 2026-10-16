@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 450" role="img" aria-labelledby="title desc">
+<title id="title">Phyllo: tangent circles</title>
+<desc id="desc">Corners 1 to 5 use radius 1.5. Turn 6 uses radius 10. Each panel has its own magnification. Orange dots mark tangent contacts. Gray lines are tangents, and dashed orange lines are radii.</desc>
+<style>
+  :root { color-scheme: light dark; }
+  .background { fill: #fff; }
+  .guide { stroke: #8a94a5; }
+  .outline { stroke: #2563eb; }
+  .sheet { fill: #2563eb; fill-opacity: .18; }
+  .round { stroke: #a84910; }
+  .contact { fill: #a84910; }
+  .label { fill: #354154; font-family: ui-sans-serif, system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #191b21; }
+    .guide { stroke: #8993a3; }
+    .outline { stroke: #85aeff; }
+    .sheet { fill: #85aeff; fill-opacity: .2; }
+    .round { stroke: #f4aa72; }
+    .contact { fill: #f4aa72; }
+    .label { fill: #e5e9f1; }
+  }
+</style>
+<rect class="background" width="640" height="450"/>
+<svg x="14" y="8" width="192" height="176" viewBox="8.1 12.98363 10.8 9.89998" overflow="hidden">
+<path class="sheet" d="M13.8189 16.48592 A65 65 0 0 1 65 80 L65 114 L16.07319 77.99726 A10 10 0 0 1 12 69.94288 L12 17.95163 A1.5 1.5 0 0 1 13.8189 16.48592 Z"/>
+<path class="outline" d="M13.8189 16.48592 A65 65 0 0 1 65 80 L65 114 L16.07319 77.99726 A10 10 0 0 1 12 69.94288 L12 17.95163 A1.5 1.5 0 0 1 13.8189 16.48592 Z" fill="none" stroke-width="0.06818"/>
+<circle class="round" cx="13.5" cy="17.95163" r="1.5" fill="none" stroke-width="0.06818"/>
+<path class="guide" d="M12 21.70163 L12 14.20163" fill="none" stroke-width="0.04432"/>
+<path class="round" d="M13.5 17.95163 L12 17.95163" fill="none" stroke-width="0.04432" stroke-dasharray="0.13636 0.13636"/>
+<circle class="contact" cx="12" cy="17.95163" r="0.09545"/>
+<path class="guide" d="M10.15462 15.68868 L17.48317 17.28317" fill="none" stroke-width="0.04432"/>
+<path class="round" d="M13.5 17.95163 L13.8189 16.48592" fill="none" stroke-width="0.04432" stroke-dasharray="0.13636 0.13636"/>
+<circle class="contact" cx="13.8189" cy="16.48592" r="0.09545"/>
+</svg>
+<text class="label" x="110" y="206" text-anchor="middle" font-size="22">1 · R 1.5</text>
+<svg x="224" y="8" width="192" height="176" viewBox="92.1 18.49882 10.8 9.89998" overflow="hidden">
+<path class="sheet" d="M61.17053 44.11127 A59 59 0 0 1 97.22609 21.99205 A1.5 1.5 0 0 1 99 23.46682 L99 62 A52.58621 52.58621 0 0 1 70 109 L70 80 A70 70 0 0 0 61.05284 45.75746 A1.5 1.5 0 0 1 61.17053 44.11127 Z"/>
+<path class="outline" d="M61.17053 44.11127 A59 59 0 0 1 97.22609 21.99205 A1.5 1.5 0 0 1 99 23.46682 L99 62 A52.58621 52.58621 0 0 1 70 109 L70 80 A70 70 0 0 0 61.05284 45.75746 A1.5 1.5 0 0 1 61.17053 44.11127 Z" fill="none" stroke-width="0.06818"/>
+<circle class="round" cx="97.5" cy="23.46682" r="1.5" fill="none" stroke-width="0.06818"/>
+<path class="guide" d="M99 19.71682 L99 27.21682" fill="none" stroke-width="0.04432"/>
+<path class="round" d="M97.5 23.46682 L99 23.46682" fill="none" stroke-width="0.04432" stroke-dasharray="0.13636 0.13636"/>
+<circle class="contact" cx="99" cy="23.46682" r="0.09545"/>
+<path class="guide" d="M93.53914 22.67683 L100.91303 21.30726" fill="none" stroke-width="0.04432"/>
+<path class="round" d="M97.5 23.46682 L97.22609 21.99205" fill="none" stroke-width="0.04432" stroke-dasharray="0.13636 0.13636"/>
+<circle class="contact" cx="97.22609" cy="21.99205" r="0.09545"/>
+</svg>
+<text class="label" x="320" y="206" text-anchor="middle" font-size="22">2 · R 1.5</text>
+<svg x="434" y="8" width="192" height="176" viewBox="56.96111 40.0557 10.8 9.89998" overflow="hidden">
+<path class="sheet" d="M61.17053 44.11127 A59 59 0 0 1 97.22609 21.99205 A1.5 1.5 0 0 1 99 23.46682 L99 62 A52.58621 52.58621 0 0 1 70 109 L70 80 A70 70 0 0 0 61.05284 45.75746 A1.5 1.5 0 0 1 61.17053 44.11127 Z"/>
+<path class="outline" d="M61.17053 44.11127 A59 59 0 0 1 97.22609 21.99205 A1.5 1.5 0 0 1 99 23.46682 L99 62 A52.58621 52.58621 0 0 1 70 109 L70 80 A70 70 0 0 0 61.05284 45.75746 A1.5 1.5 0 0 1 61.17053 44.11127 Z" fill="none" stroke-width="0.06818"/>
+<circle class="round" cx="62.36111" cy="45.0237" r="1.5" fill="none" stroke-width="0.06818"/>
+<path class="guide" d="M62.88726 49.02815 L59.21841 42.48678" fill="none" stroke-width="0.04432"/>
+<path class="round" d="M62.36111 45.0237 L61.05284 45.75746" fill="none" stroke-width="0.04432" stroke-dasharray="0.13636 0.13636"/>
+<circle class="contact" cx="61.05284" cy="45.75746" r="0.09545"/>
+<path class="guide" d="M58.88947 47.08772 L63.45159 41.13482" fill="none" stroke-width="0.04432"/>
+<path class="round" d="M62.36111 45.0237 L61.17053 44.11127" fill="none" stroke-width="0.04432" stroke-dasharray="0.13636 0.13636"/>
+<circle class="contact" cx="61.17053" cy="44.11127" r="0.09545"/>
+</svg>
+<text class="label" x="530" y="206" text-anchor="middle" font-size="22">3 · R 1.5</text>
+<svg x="14" y="228" width="192" height="176" viewBox="111.07108 45.74877 10.8 9.89998" overflow="hidden">
+<path class="sheet" d="M104.78378 53.91729 A57 57 0 0 1 116.05138 49.27668 A1.5 1.5 0 0 1 117.97043 50.76079 A68.65319 68.65319 0 0 1 72.24262 113.46885 A57.58621 57.58621 0 0 0 104 62 L104 55.23526 A1.5 1.5 0 0 1 104.78378 53.91729 Z"/>
+<path class="outline" d="M104.78378 53.91729 A57 57 0 0 1 116.05138 49.27668 A1.5 1.5 0 0 1 117.97043 50.76079 A68.65319 68.65319 0 0 1 72.24262 113.46885 A57.58621 57.58621 0 0 0 104 62 L104 55.23526 A1.5 1.5 0 0 1 104.78378 53.91729 Z" fill="none" stroke-width="0.06818"/>
+<circle class="round" cx="116.47108" cy="50.71677" r="1.5" fill="none" stroke-width="0.06818"/>
+<path class="guide" d="M112.45116 50.32593 L119.65159 48.22743" fill="none" stroke-width="0.04432"/>
+<path class="round" d="M116.47108 50.71677 L116.05138 49.27668" fill="none" stroke-width="0.04432" stroke-dasharray="0.13636 0.13636"/>
+<circle class="contact" cx="116.05138" cy="49.27668" r="0.09545"/>
+<path class="guide" d="M118.08048 47.01241 L117.86038 54.50918" fill="none" stroke-width="0.04432"/>
+<path class="round" d="M116.47108 50.71677 L117.97043 50.76079" fill="none" stroke-width="0.04432" stroke-dasharray="0.13636 0.13636"/>
+<circle class="contact" cx="117.97043" cy="50.76079" r="0.09545"/>
+</svg>
+<text class="label" x="110" y="426" text-anchor="middle" font-size="22">4 · R 1.5</text>
+<svg x="224" y="228" width="192" height="176" viewBox="100.1 50.26726 10.8 9.89998" overflow="hidden">
+<path class="sheet" d="M104.78378 53.91729 A57 57 0 0 1 116.05138 49.27668 A1.5 1.5 0 0 1 117.97043 50.76079 A68.65319 68.65319 0 0 1 72.24262 113.46885 A57.58621 57.58621 0 0 0 104 62 L104 55.23526 A1.5 1.5 0 0 1 104.78378 53.91729 Z"/>
+<path class="outline" d="M104.78378 53.91729 A57 57 0 0 1 116.05138 49.27668 A1.5 1.5 0 0 1 117.97043 50.76079 A68.65319 68.65319 0 0 1 72.24262 113.46885 A57.58621 57.58621 0 0 0 104 62 L104 55.23526 A1.5 1.5 0 0 1 104.78378 53.91729 Z" fill="none" stroke-width="0.06818"/>
+<circle class="round" cx="105.5" cy="55.23526" r="1.5" fill="none" stroke-width="0.06818"/>
+<path class="guide" d="M104 58.98526 L104 51.48526" fill="none" stroke-width="0.04432"/>
+<path class="round" d="M105.5 55.23526 L104 55.23526" fill="none" stroke-width="0.04432" stroke-dasharray="0.13636 0.13636"/>
+<circle class="contact" cx="104" cy="55.23526" r="0.09545"/>
+<path class="guide" d="M101.48887 55.70783 L108.0787 52.12675" fill="none" stroke-width="0.04432"/>
+<path class="round" d="M105.5 55.23526 L104.78378 53.91729" fill="none" stroke-width="0.04432" stroke-dasharray="0.13636 0.13636"/>
+<circle class="contact" cx="104.78378" cy="53.91729" r="0.09545"/>
+</svg>
+<text class="label" x="320" y="426" text-anchor="middle" font-size="22">5 · R 1.5</text>
+<svg x="434" y="228" width="192" height="176" viewBox="-14 36.82288 72 65.99988" overflow="hidden">
+<path class="sheet" d="M13.8189 16.48592 A65 65 0 0 1 65 80 L65 114 L16.07319 77.99726 A10 10 0 0 1 12 69.94288 L12 17.95163 A1.5 1.5 0 0 1 13.8189 16.48592 Z"/>
+<path class="outline" d="M13.8189 16.48592 A65 65 0 0 1 65 80 L65 114 L16.07319 77.99726 A10 10 0 0 1 12 69.94288 L12 17.95163 A1.5 1.5 0 0 1 13.8189 16.48592 Z" fill="none" stroke-width="0.45455"/>
+<circle class="round" cx="22" cy="69.94288" r="10" fill="none" stroke-width="0.45455"/>
+<path class="guide" d="M36.20914 92.81427 L-4.06275 63.18024" fill="none" stroke-width="0.29545"/>
+<path class="round" d="M22 69.94288 L16.07319 77.99726" fill="none" stroke-width="0.29545" stroke-dasharray="0.90909 0.90909"/>
+<circle class="contact" cx="16.07319" cy="77.99726" r="0.63636"/>
+<path class="guide" d="M12 94.94288 L12 44.94288" fill="none" stroke-width="0.29545"/>
+<path class="round" d="M22 69.94288 L12 69.94288" fill="none" stroke-width="0.29545" stroke-dasharray="0.90909 0.90909"/>
+<circle class="contact" cx="12" cy="69.94288" r="0.63636"/>
+</svg>
+<text class="label" x="530" y="426" text-anchor="middle" font-size="22">6 · R 10</text>
+</svg>
