@@ -2,6 +2,16 @@
   "name": "@phyllo/core",
   "version": "0.1.0",
   "description": "The Bun build engine for Phyllo.",
+  "keywords": [
+    "bun",
+    "static-site-generator",
+    "ssg",
+    "markdown",
+    "mdx",
+    "frontmatter",
+    "content",
+    "react"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xueelf/phyllo.git",

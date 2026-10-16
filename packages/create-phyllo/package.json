@@ -2,6 +2,16 @@
   "name": "create-phyllo",
   "version": "0.1.0",
   "description": "Create a Phyllo site or theme.",
+  "keywords": [
+    "create",
+    "phyllo",
+    "static-site-generator",
+    "template",
+    "starter",
+    "project",
+    "bun",
+    "cli"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xueelf/phyllo.git",

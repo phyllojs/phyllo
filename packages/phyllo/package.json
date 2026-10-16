@@ -2,6 +2,17 @@
   "name": "phyllo",
   "version": "0.1.0",
   "description": "A Bun-only framework for building documentation sites and blogs with Markdown and MDX.",
+  "keywords": [
+    "phyllo",
+    "bun",
+    "static-site-generator",
+    "ssg",
+    "markdown",
+    "mdx",
+    "react",
+    "documentation",
+    "framework"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xueelf/phyllo.git",

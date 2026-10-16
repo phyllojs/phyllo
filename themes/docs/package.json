@@ -2,6 +2,14 @@
   "name": "phyllo-theme-docs",
   "version": "0.1.0",
   "description": "A documentation theme for Phyllo.",
+  "keywords": [
+    "phyllo",
+    "phyllo-theme",
+    "theme",
+    "docs",
+    "documentation",
+    "react"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xueelf/phyllo.git",
