@@ -1,0 +1,82 @@
+name: Bug report | 问题反馈
+description: Report a bug in Phyllo | 报告 Phyllo 中的问题
+title: '[BUG] <title>'
+labels:
+  - bug
+assignees:
+  - xueelf
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Fill in as much of the form as you can so the issue can be reproduced quickly. Search the [documentation](https://phyllo.js.org/en/guide/introduction) first to rule out a configuration mistake.
+
+        感谢你的反馈。请尽可能完整地填写，以便快速复现问题。提交前请先查阅[文档](https://phyllo.js.org/zh/guide/introduction)，排除配置使用错误。
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Affected package | 受影响的包
+      description: Select every package involved. | 选择所有涉及的包。
+      multiple: true
+      options:
+        - phyllo
+        - '@phyllo/core'
+        - '@phyllo/cli'
+        - create-phyllo
+        - phyllo-theme-docs
+        - A custom theme | 自定义主题
+        - Not sure | 不确定
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Package version | 包版本
+      description: The version recorded in package.json or bun.lock. | package.json 或 bun.lock 中记录的版本。
+      placeholder: '0.1.0'
+    validations:
+      required: true
+
+  - type: input
+    id: bun-version
+    attributes:
+      label: Bun version | Bun 版本
+      description: Run `bun --version` to check. | 运行 `bun --version` 查看。
+      placeholder: '1.4.0'
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce | 复现步骤
+      description: List the commands and file contents that trigger the bug. | 列出触发问题的命令和文件内容。
+      placeholder: |
+        1. Create a site with `bun create phyllo my-site`
+        2. Add a page with ...
+        3. Run `bun run dev`
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual result | 期望结果与实际结果
+      description: What did you expect, and what happened instead? | 你期望发生什么，实际发生了什么？
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs | 日志
+      description: Paste the terminal output or browser console errors. | 粘贴终端输出或浏览器控制台报错。
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context | 附加信息
+      description: Site configuration, theme, minimal reproduction repository, or anything else relevant. | 站点配置、主题、最小复现仓库或其他相关信息。
