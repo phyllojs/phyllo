@@ -27,18 +27,18 @@
     "typecheck": "tsc --noEmit && bun run --workspaces --if-present typecheck"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.2.2",
-    "@commitlint/config-conventional": "^21.2.2",
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
     "@commitlint/types": "^21.2.0",
     "@eslint/js": "^10.0.1",
     "@types/bun": "^1.4.3",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "eslint": "^10.8.1",
+    "eslint": "^10.12.0",
     "husky": "^9.1.7",
-    "prettier": "^3.9.6",
-    "prettier-plugin-sort": "^1.1.0",
-    "typescript-eslint": "^8.67.0"
+    "prettier": "^3.9.10",
+    "prettier-plugin-sort": "^1.1.2",
+    "typescript-eslint": "^8.71.2"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"
