@@ -28,7 +28,7 @@
         "phyllo": "workspace:*",
         "phyllo-theme-docs": "workspace:*",
         "react": "^19.3.0",
-        "react-dom": "^19.3.0",
+        "react-dom": "^19.3.1",
       },
       "devDependencies": {
         "@phyllo/cli": "workspace:*",
@@ -58,7 +58,7 @@
         "phyllo": "workspace:*",
         "property-information": "^7.2.0",
         "react": "^19.3.0",
-        "react-dom": "^19.3.0",
+        "react-dom": "^19.3.1",
         "rehype-raw": "^7.0.0",
         "remark-frontmatter": "^5.0.0",
         "remark-gfm": "^4.0.1",
@@ -659,7 +659,7 @@
 
     "react": ["react@19.3.0", "", {}, "sha512-E8LUcbtBWt20bbl2YoHfx4ZDBdxVTfOKtCZn9cDSJ4l6/nuoApcpIBcj47t2wZoVX8g2ZHuMHbiShgCR1T5Sog=="],
 
-    "react-dom": ["react-dom@19.3.0", "", { "dependencies": { "scheduler": "^0.28.0" }, "peerDependencies": { "react": "^19.3.0" } }, "sha512-JDk8dgif51OjFoDE70+OT9ICyYr+69HlmihNwp1+Nsfbna3t5sIiCa9ZJktDmQ4/1b/rn26hIAR2uYXDMr5r0Q=="],
+    "react-dom": ["react-dom@19.3.1", "", { "dependencies": { "scheduler": "^0.28.0" }, "peerDependencies": { "react": "^19.3.1" } }, "sha512-Y0bARz53lhEC1NMCASs0/j+faB/zqt3R8hpvg1e8+61ZVJ4UL0UdC4cBbXfZMcIuhrfgeILTLe+ZeBCavQPtKQ=="],
 
     "rebake": ["rebake@0.1.0", "", {}, "sha512-5MhD/3F5gpsOB0I14q+h33mSy8LpO1n8EJOJazc8IsBrI4Uj5zW+6tBV3q7uCy7DK2xC/z0svosBKujxRAvh9w=="],
 

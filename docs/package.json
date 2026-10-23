@@ -12,7 +12,7 @@
     "phyllo": "workspace:*",
     "phyllo-theme-docs": "workspace:*",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@phyllo/cli": "workspace:*",
