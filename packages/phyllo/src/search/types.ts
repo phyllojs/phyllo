@@ -22,7 +22,7 @@ export interface SearchResult {
   heading: string;
   /** 包含命中词的摘要。 */
   snippet: string;
-  /** 需要高亮的词，以纯文本形式提供给主题。 */
+  /** 用于高亮的查询词，不包含前缀补全或拼写纠正后的词。 */
   terms: string[];
 }
 

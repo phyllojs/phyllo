@@ -126,6 +126,6 @@ export async function search(
       title: result.title,
       heading: result.heading,
       snippet: snippet(result.text, result.terms),
-      terms: result.terms,
+      terms: result.queryTerms,
     }));
 }
