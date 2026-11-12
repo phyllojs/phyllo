@@ -7,8 +7,9 @@ const SEGMENTER = new Intl.Segmenter('und', { granularity: 'word' });
  * @returns 切分出的词语列表。
  */
 export function tokenize(text: string): string[] {
+  // 部分浏览器会将中文词语标记为非词语，按字符类别保留有效内容。
   return [...SEGMENTER.segment(text)]
-    .filter(part => part.isWordLike)
+    .filter(part => /[\p{L}\p{N}]/u.test(part.segment))
     .map(part => part.segment);
 }
 

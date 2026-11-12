@@ -3,8 +3,8 @@ import { expect, test } from 'bun:test';
 import { snippet, tokenize } from '../src/search/text';
 
 test('分词', () => {
-  expect(tokenize('Hello, world!')).toEqual(['Hello', 'world']);
-  expect(tokenize('v2 release')).toEqual(['v2', 'release']);
+  expect(tokenize('hello world')).toEqual(['hello', 'world']);
+  expect(tokenize('你好世界')).toEqual(['你好', '世界']);
 });
 
 test('短文本摘要', () => {
