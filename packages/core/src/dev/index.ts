@@ -1,5 +1,7 @@
-import { argv, file, spawn, write } from 'bun';
-import { join, resolve } from 'node:path';
+import { argv, spawn, write } from 'bun';
+import { join } from 'node:path';
+
+import { resolveProjectPaths } from '../config/project';
 
 /**
  * 开发服务器选项。
@@ -20,13 +22,8 @@ export interface DevOptions {
  * @throws 站点缺少配置文件时抛出错误。
  */
 export async function dev(directory = '.', options: DevOptions = {}) {
-  const root = resolve(directory);
-  const config = join(root, 'phyllo.config.ts');
-
-  if (!(await file(config).exists())) {
-    throw new Error(`Missing ${config}. Run phyllo init first.`);
-  }
-  const bunfig = join(root, '.phyllo', 'bunfig.toml');
+  const { root, workDir } = await resolveProjectPaths(directory);
+  const bunfig = join(workDir, 'bunfig.toml');
   const serverEntry = join(import.meta.dir, 'server.ts');
 
   /*

@@ -1,4 +1,5 @@
 import { file } from 'bun';
+import { rejects } from 'node:assert/strict';
 import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -290,6 +291,29 @@ async function writeSite() {
 }
 
 try {
+  // 工作目录不合法时，在写入 bunfig 或启动子进程之前报错。
+  const invalidRoot = join(parent, 'invalid-site');
+  const externalWorkDir = join(parent, 'external-work');
+
+  await mkdir(invalidRoot);
+  await mkdir(externalWorkDir);
+
+  await writeFile(
+    join(invalidRoot, 'phyllo.config.ts'),
+    "export default { theme: 'phyllo-theme-docs' };",
+  );
+  await symlink(externalWorkDir, join(invalidRoot, '.phyllo'));
+
+  await rejects(async () => {
+    const server = await dev(invalidRoot, { port: 0 });
+
+    await server.stop();
+  }, /\.phyllo must be a separate directory inside the project\./);
+
+  if (await file(join(externalWorkDir, 'bunfig.toml')).exists()) {
+    throw new Error('开发启动校验失败后仍写入了工程外的工作目录。');
+  }
+
   await writeSite();
   await symlink(root, linked);
 

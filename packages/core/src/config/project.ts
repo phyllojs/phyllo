@@ -69,6 +69,29 @@ export async function assertBundleInputsOutsideOutdir(
 }
 
 /**
+ * 解析工程路径，在写入生成文件前检查配置文件和工作目录。
+ *
+ * @param directory - 站点根目录，默认为当前目录。
+ * @returns 工程根目录、工作目录和配置文件路径。
+ * @throws 配置文件不存在或工作目录不属于工程时抛出错误。
+ */
+export async function resolveProjectPaths(directory = '.') {
+  const root = await realpath(resolve(directory));
+  const workDir = await resolvePath(join(root, '.phyllo'));
+  const configFile = join(root, 'phyllo.config.ts');
+
+  if (!(await file(configFile).exists())) {
+    throw new Error(`Missing ${configFile}. Run phyllo init first.`);
+  }
+
+  if (workDir === root || !isWithin(root, workDir)) {
+    throw new Error('.phyllo must be a separate directory inside the project.');
+  }
+
+  return { root, workDir, configFile };
+}
+
+/**
  * 读取配置、解析目录并校验工程约束。
  *
  * @param directory - 站点根目录，默认为当前目录。
@@ -76,24 +99,15 @@ export async function assertBundleInputsOutsideOutdir(
  * @throws 缺少配置文件、目录不合法或内容目录不存在时抛出错误。
  */
 export async function loadProject(directory = '.'): Promise<Project> {
-  const root = await realpath(resolve(directory));
-  const workDir = await resolvePath(join(root, '.phyllo'));
-  const filename = join(root, 'phyllo.config.ts');
+  const { root, workDir, configFile } = await resolveProjectPaths(directory);
 
-  if (!(await file(filename).exists())) {
-    throw new Error(`Missing ${filename}. Run phyllo init first.`);
-  }
-
-  if (workDir === root || !isWithin(root, workDir)) {
-    throw new Error('.phyllo must be a separate directory inside the project.');
-  }
   await mkdir(workDir, { recursive: true });
 
   const {
     exports: { default: value },
     hash: configHash,
     inputs,
-  } = await importFresh(filename);
+  } = await importFresh(configFile);
 
   if (
     !value ||
