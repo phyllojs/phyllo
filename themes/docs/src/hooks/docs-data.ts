@@ -294,6 +294,18 @@ export function resolveDocs(input: DocsInput) {
       return { lang, label: value.label, url: prefix.slice(0, -1) };
     },
   );
+
+  for (const locale of locales) {
+    const parent = locales.find(
+      candidate => candidate !== locale && within(locale.url, candidate.url),
+    );
+
+    if (parent) {
+      throw new Error(
+        `Locale ranges cannot overlap: ${parent.url}/ and ${locale.url}/.`,
+      );
+    }
+  }
   const currentLocale = locales.find(locale => within(page.url, locale.url));
   const home = currentLocale?.url ?? '/';
   const homeData = allPages.find(

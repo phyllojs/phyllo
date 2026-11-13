@@ -90,6 +90,45 @@ test('语言范围解析', () => {
   });
 });
 
+test('语言范围不能嵌套，与配置顺序无关', () => {
+  const entries = [
+    ['/docs/', { lang: 'en', label: 'English' }],
+    ['/docs/zh/', { lang: 'zh-CN', label: '中文' }],
+  ] satisfies [string, { lang: string; label: string }][];
+
+  for (const locales of [
+    Object.fromEntries(entries),
+    Object.fromEntries(entries.toReversed()),
+  ]) {
+    expect(() =>
+      resolveDocs({
+        site: {},
+        page: currentPage('/docs/zh/guide'),
+        pages: [contentPage('/', 'Home', { locales })],
+      }),
+    ).toThrow('Locale ranges cannot overlap: /docs/ and /docs/zh/.');
+  }
+});
+
+test('语言范围按完整路径段匹配', () => {
+  const data = resolveDocs({
+    site: {},
+    page: currentPage('/docs/zhongwen/guide'),
+    pages: [
+      contentPage('/', 'Home', {
+        locales: {
+          '/docs/zh/': { lang: 'zh-CN', label: '中文' },
+          '/docs/zhongwen/': { lang: 'en', label: 'English' },
+        },
+      }),
+    ],
+  });
+
+  expect(data.home).toBe('/docs/zhongwen');
+  expect(data.lang).toBe('en');
+  expect(data.searchDirectory).toBe('docs/zhongwen');
+});
+
 test('语言范围校验', () => {
   expect(() =>
     resolveDocs({
@@ -101,7 +140,7 @@ test('语言范围校验', () => {
         }),
       ],
     }),
-  ).toThrow('Invalid locale prefix: zh.');
+  ).toThrow('Invalid locale prefix: zh. Use an encoded /directory/ prefix.');
 
   expect(() =>
     resolveDocs({
@@ -216,19 +255,23 @@ test('导航与面包屑', () => {
     pages,
   });
 
+  const [section] = data.sections;
+  const [, install] = data.pages;
+  const [guide, github] = data.nav;
+
   expect(data.activeNav?.label).toBe('指南');
   expect(data.breadcrumbs).toEqual(['开始']);
   expect(data.sections).toHaveLength(1);
-  expect(data.sections[0]?.label).toBe('开始');
+  expect(section?.label).toBe('开始');
 
   expect(data.pages.map(article => article.href)).toEqual([
     '/zh/guide',
     '/zh/guide/install',
   ]);
-  expect(data.pages[1]?.label).toBe('安装');
-  expect(data.nav[0]).toMatchObject({ label: '指南', href: '/zh/guide' });
+  expect(install?.label).toBe('安装');
+  expect(guide).toMatchObject({ label: '指南', href: '/zh/guide' });
 
-  expect(data.nav[1]).toMatchObject({
+  expect(github).toMatchObject({
     label: 'GitHub',
     href: 'https://github.com/phyllojs/phyllo',
   });
@@ -341,7 +384,7 @@ test('首页配置结构校验', () => {
     });
 
   expect(() => resolve({ hero: false as never })).toThrow(
-    'hero must be an object',
+    'hero must be an object with title, description, image or actions.',
   );
 
   expect(() => resolve({ hero: { image: 'pic.svg' } as never })).toThrow(
@@ -373,11 +416,11 @@ test('首页配置结构校验', () => {
   ).toThrow('hero.actions requires links with label and href.');
 
   expect(() => resolve({ features: { wrong: 'value' } as never })).toThrow(
-    'features must be an array',
+    'features must be an array of entries with title and description.',
   );
 
   expect(() => resolve({ features: [{} as never] })).toThrow(
-    'features must be an array',
+    'features must be an array of entries with title and description.',
   );
 
   // 合法的空数组与空字符串保留，不套用默认值。
