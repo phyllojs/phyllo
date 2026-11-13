@@ -1,6 +1,7 @@
 import { basename, join } from 'node:path';
 
 import { input, select } from 'rebake/prompts';
+import validate from 'validate-npm-package-name';
 
 import { devEngines } from '../package.json';
 
@@ -76,11 +77,16 @@ export async function createProject(
   }
   const choice = theme ? { name: theme } : chooseTheme();
 
-  validatePackageName(choice.name);
+  if (choice.local) {
+    validatePackageName(choice.name);
+  } else if (!validate(choice.name).validForOldPackages) {
+    throw new Error(`Use a valid npm theme package name: ${choice.name}`);
+  }
 
   await copyTemplate('site', root, {
     NAME: name,
     THEME: choice.name,
+    THEME_LITERAL: JSON.stringify(choice.name),
     THEME_VERSION: choice.local ? 'workspace:*' : 'latest',
     DEV_ENGINES: templateJson(devEngines),
   });
