@@ -2,11 +2,11 @@ import { join } from 'node:path';
 
 type Point = [number, number];
 type Circle = { center: Point; radius: number };
-type Corner = Circle & { contacts: [Point, Point]; sheet: number };
+type Corner = Circle & { contacts: [Point, Point] };
 
-const add = (a: Point, b: Point): Point => [a[0] + b[0], a[1] + b[1]];
-const sub = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1]];
-const scale = (p: Point, n: number): Point => [p[0] * n, p[1] * n];
+const add = ([ax, ay]: Point, [bx, by]: Point): Point => [ax + bx, ay + by];
+const sub = ([ax, ay]: Point, [bx, by]: Point): Point => [ax - bx, ay - by];
+const scale = ([x, y]: Point, n: number): Point => [x * n, y * n];
 const length = (p: Point) => Math.hypot(...p);
 const unit = (p: Point) => scale(p, 1 / length(p));
 const number = (n: number) => String(Number(n.toFixed(5)));
@@ -15,7 +15,7 @@ const circle = (center: Point, radius: number): Circle => ({ center, radius });
 const project = (c: Circle, p: Point) =>
   add(c.center, scale(unit(sub(p, c.center)), c.radius));
 
-function intersections(a: Circle, b: Circle): Point[] {
+function intersections(a: Circle, b: Circle): [Point, Point] {
   const delta = sub(b.center, a.center);
   const distance = length(delta);
   const along =
@@ -26,8 +26,9 @@ function intersections(a: Circle, b: Circle): Point[] {
     throw new Error('Construction circles do not intersect.');
   }
   const direction = unit(delta);
+  const [dx, dy] = direction;
   const middle = add(a.center, scale(direction, along));
-  const normal: Point = [-direction[1] * height, direction[0] * height];
+  const normal: Point = [-dy * height, dx * height];
 
   return [add(middle, normal), sub(middle, normal)];
 }
@@ -46,63 +47,54 @@ const middleX = (99 ** 2 - 70 ** 2 - (109 - 62) ** 2) / (2 * (99 - 70));
 const middle = circle([middleX, 62], 99 - middleX);
 const middleGap = circle(middle.center, middle.radius + gap);
 const lastTip = project(middleGap, middleTip);
+const [lastTipX, lastTipY] = lastTip;
+const [, lastTopY] = lastTop.center;
 // 最外层圆经过 lastTip，并与竖直线 x=118 相切。
-const lastY =
-  lastTop.center[1] - Math.sqrt(lastTop.radius ** 2 - (118 - 132) ** 2);
+const lastY = lastTopY - Math.sqrt(lastTop.radius ** 2 - (118 - 132) ** 2);
 const lastX =
-  (118 ** 2 - lastTip[0] ** 2 - (lastTip[1] - lastY) ** 2) /
-  (2 * (118 - lastTip[0]));
+  (118 ** 2 - lastTipX ** 2 - (lastTipY - lastY) ** 2) / (2 * (118 - lastTipX));
 const last = circle([lastX, lastY], 118 - lastX);
 
-function verticalCorner(
-  c: Circle,
-  x: number,
-  side: number,
-  sheet: number,
-): Corner {
+function verticalCorner(c: Circle, x: number, side: number): Corner {
+  const [centerX, centerY] = c.center;
   const cx = x + side * radius;
   const cy =
-    c.center[1] - Math.sqrt((c.radius - radius) ** 2 - (cx - c.center[0]) ** 2);
+    centerY - Math.sqrt((c.radius - radius) ** 2 - (cx - centerX) ** 2);
   const center: Point = [cx, cy];
 
-  return { center, radius, sheet, contacts: [[x, cy], project(c, center)] };
+  return { center, radius, contacts: [[x, cy], project(c, center)] };
 }
 
-const c1 = verticalCorner(left, 12, 1, 0);
-const c2 = verticalCorner(middleTop, 99, -1, 1);
-const c3Center = intersections(
+const c1 = verticalCorner(left, 12, 1);
+const c2 = verticalCorner(middleTop, 99, -1);
+const [c3Center] = intersections(
   circle(left.center, leftGap.radius + radius),
   circle(middleTop.center, middleTop.radius - radius),
-).sort((a, b) => a[1] - b[1])[0]!;
+).sort(([, ay], [, by]) => ay - by);
 const c3: Corner = {
   center: c3Center,
   radius,
-  sheet: 1,
   contacts: [project(leftGap, c3Center), project(middleTop, c3Center)],
 };
-const c4Center = intersections(
+const [c4Center] = intersections(
   circle(lastTop.center, lastTop.radius - radius),
   circle(last.center, last.radius - radius),
-).sort((a, b) => length(sub(a, [116, 50])) - length(sub(b, [116, 50])))[0]!;
+).sort((a, b) => length(sub(a, [116, 50])) - length(sub(b, [116, 50])));
 const c4: Corner = {
   center: c4Center,
   radius,
-  sheet: 2,
   contacts: [project(lastTop, c4Center), project(last, c4Center)],
 };
-const c5 = verticalCorner(lastTop, 104, 1, 2);
+const c5 = verticalCorner(lastTop, 104, 1);
 // 左下角圆弧连接竖直线 x=12 与经过 (12, 75) 和 leftTip 的直线。
-const bottom = unit(sub(leftTip, [12, 75]));
-const foldCenter: Point = [
-  22,
-  75 + (bottom[1] / bottom[0]) * 10 - 10 / bottom[0],
-];
-const foldTouch = add(foldCenter, [-bottom[1] * 10, bottom[0] * 10]);
+const [bottomX, bottomY] = unit(sub(leftTip, [12, 75]));
+const foldCenter: Point = [22, 75 + (bottomY / bottomX) * 10 - 10 / bottomX];
+const [, foldY] = foldCenter;
+const foldTouch = add(foldCenter, [-bottomY * 10, bottomX * 10]);
 const fold: Corner = {
   center: foldCenter,
   radius: 10,
-  sheet: 0,
-  contacts: [foldTouch, [12, foldCenter[1]]],
+  contacts: [foldTouch, [12, foldY]],
 };
 
 class Outline {
@@ -127,30 +119,41 @@ class Outline {
   }
 }
 
-const paths = [
-  new Outline(c1.contacts[1])
+const [c1Line, c1Arc] = c1.contacts;
+const [c2Line, c2Arc] = c2.contacts;
+const [c3Left, c3Top] = c3.contacts;
+const [c4Top, c4Side] = c4.contacts;
+const [c5Line, c5Arc] = c5.contacts;
+const [, foldLine] = fold.contacts;
+const firstPath = String(
+  new Outline(c1Arc)
     .arc(left, [65, 80])
     .line(leftTip)
     .line(foldTouch)
-    .arc(fold, fold.contacts[1])
-    .line(c1.contacts[0])
-    .arc(c1, c1.contacts[1]),
-  new Outline(c3.contacts[1])
-    .arc(middleTop, c2.contacts[1])
-    .arc(c2, c2.contacts[0])
+    .arc(fold, foldLine)
+    .line(c1Line)
+    .arc(c1, c1Arc),
+);
+const middlePath = String(
+  new Outline(c3Top)
+    .arc(middleTop, c2Arc)
+    .arc(c2, c2Line)
     .line([99, 62])
     .arc(middle, middleTip)
     .line([70, 80])
-    .arc(leftGap, c3.contacts[0], 0)
-    .arc(c3, c3.contacts[1]),
-  new Outline(c5.contacts[1])
-    .arc(lastTop, c4.contacts[0])
-    .arc(c4, c4.contacts[1])
+    .arc(leftGap, c3Left, 0)
+    .arc(c3, c3Top),
+);
+const lastPath = String(
+  new Outline(c5Arc)
+    .arc(lastTop, c4Top)
+    .arc(c4, c4Side)
     .arc(last, lastTip)
     .arc(middleGap, [104, 62], 0)
-    .line(c5.contacts[0])
-    .arc(c5, c5.contacts[1]),
-].map(String);
+    .line(c5Line)
+    .arc(c5, c5Arc),
+);
+const paths = [firstPath, middlePath, lastPath];
 const corners = [c1, c2, c3, c4, c5, fold];
 const circles = [left, leftGap, middleTop, middle, middleGap, lastTop, last];
 const style = [
@@ -205,8 +208,8 @@ const construction = drawing(
     '<g class="guide" fill="none" stroke-width=".4">',
     circles
       .map(
-        c =>
-          `<circle cx="${number(c.center[0])}" cy="${number(c.center[1])}" r="${number(c.radius)}"/>`,
+        ({ center: [x, y], radius }) =>
+          `<circle cx="${number(x)}" cy="${number(y)}" r="${number(radius)}"/>`,
       )
       .join('\n'),
     '<path d="M-75 80H185 M12 10V115 M65 80V120 M70 80V120 M99 22V62 M104 54V62" stroke-dasharray="1.5 2"/>',
@@ -215,28 +218,33 @@ const construction = drawing(
     '<g class="round" fill="none" stroke-width=".45">',
     corners
       .map(
-        c =>
-          `<circle cx="${number(c.center[0])}" cy="${number(c.center[1])}" r="${c.radius}"/>`,
+        ({ center: [x, y], radius }) =>
+          `<circle cx="${number(x)}" cy="${number(y)}" r="${radius}"/>`,
       )
       .join('\n'),
     '</g>',
-    [left, middleTop, middle, lastTop, last]
-      .map((c, i) => {
-        const [x, y] = c.center;
-        const offsets = [
-          [-14, 7],
-          [5, 8],
-          [-16, 5],
-          [4, 7],
-          [-16, -4],
-        ];
-        const [dx, dy] = offsets[i]!;
-
-        return [
-          `<path class="guide" d="M${point([x - 2, y])}h4 M${point([x, y - 2])}v4" fill="none" stroke-width=".6"/>`,
-          `<text class="label" x="${number(x + dx!)}" y="${number(y + dy!)}" font-size="7">O${i + 1}</text>`,
-        ].join('\n');
-      })
+    (
+      [
+        [left, [-14, 7]],
+        [middleTop, [5, 8]],
+        [middle, [-16, 5]],
+        [lastTop, [4, 7]],
+        [last, [-16, -4]],
+      ] satisfies [Circle, Point][]
+    )
+      .map(
+        (
+          [
+            {
+              center: [x, y],
+            },
+            [dx, dy],
+          ],
+          i,
+        ) => {
+          return `<path class="guide" d="M${point([x - 2, y])}h4 M${point([x, y - 2])}v4" fill="none" stroke-width=".6"/>\n<text class="label" x="${number(x + dx)}" y="${number(y + dy)}" font-size="7">O${i + 1}</text>`;
+        },
+      )
       .join('\n'),
     [
       [30, 55, 'A'],
@@ -250,43 +258,45 @@ const construction = drawing(
       .join('\n'),
   ].join('\n'),
 );
-const positions: Point[] = [
-  [14, 8],
-  [224, 8],
-  [434, 8],
-  [14, 228],
-  [224, 228],
-  [434, 228],
-];
 const detail = drawing(
   '0 0 640 450',
   'Phyllo: tangent circles',
   'Corners 1 to 5 use radius 1.5. Turn 6 uses radius 10. Each panel has its own magnification. Orange dots mark tangent contacts. Gray lines are tangents, and dashed orange lines are radii.',
   [
     '<rect class="background" width="640" height="450"/>',
-    corners
-      .map((c, i) => {
-        const [x, y] = positions[i]!;
+    (
+      [
+        [c1, [14, 8], firstPath],
+        [c2, [224, 8], middlePath],
+        [c3, [434, 8], middlePath],
+        [c4, [14, 228], lastPath],
+        [c5, [224, 228], lastPath],
+        [fold, [434, 228], firstPath],
+      ] satisfies [Corner, Point, string][]
+    )
+      .map(([c, [x, y], path], i) => {
+        const [cx, cy] = c.center;
         const extent = c.radius * 3.6;
         const stroke = c.radius / 22;
 
         return [
-          `<svg x="${x}" y="${y}" width="192" height="176" viewBox="${number(c.center[0] - extent)} ${number(c.center[1] - extent * 0.92)} ${number(extent * 2)} ${number(extent * 1.83333)}" overflow="hidden">`,
-          `<path class="sheet" d="${paths[c.sheet]}"/>`,
-          `<path class="outline" d="${paths[c.sheet]}" fill="none" stroke-width="${number(stroke)}"/>`,
-          `<circle class="round" cx="${number(c.center[0])}" cy="${number(c.center[1])}" r="${c.radius}" fill="none" stroke-width="${number(stroke)}"/>`,
+          `<svg x="${x}" y="${y}" width="192" height="176" viewBox="${number(cx - extent)} ${number(cy - extent * 0.92)} ${number(extent * 2)} ${number(extent * 1.83333)}" overflow="hidden">`,
+          `<path class="sheet" d="${path}"/>`,
+          `<path class="outline" d="${path}" fill="none" stroke-width="${number(stroke)}"/>`,
+          `<circle class="round" cx="${number(cx)}" cy="${number(cy)}" r="${c.radius}" fill="none" stroke-width="${number(stroke)}"/>`,
           c.contacts
             .map(p => {
-              const n = unit(sub(p, c.center));
+              const [nx, ny] = unit(sub(p, c.center));
+              const [px, py] = p;
               const tangent: Point = [
-                -n[1] * c.radius * 2.5,
-                n[0] * c.radius * 2.5,
+                -ny * c.radius * 2.5,
+                nx * c.radius * 2.5,
               ];
 
               return [
                 `<path class="guide" d="M${point(sub(p, tangent))} L${point(add(p, tangent))}" fill="none" stroke-width="${number(stroke * 0.65)}"/>`,
                 `<path class="round" d="M${point(c.center)} L${point(p)}" fill="none" stroke-width="${number(stroke * 0.65)}" stroke-dasharray="${number(stroke * 2)} ${number(stroke * 2)}"/>`,
-                `<circle class="contact" cx="${number(p[0])}" cy="${number(p[1])}" r="${number(stroke * 1.4)}"/>`,
+                `<circle class="contact" cx="${number(px)}" cy="${number(py)}" r="${number(stroke * 1.4)}"/>`,
               ].join('\n');
             })
             .join('\n'),
