@@ -455,14 +455,32 @@ try {
 
   await writeFile(
     join(firstContent, 'page.mdx'),
-    '# First\n\nFIRST_BODY\n\n[Second](./second-page.md)\n\n![Pic](./pic.svg)\n',
+    [
+      '# First',
+      '',
+      'FIRST_BODY',
+      '',
+      '[Second](./second-page.md)',
+      '',
+      '![Pic](./pic.svg)',
+      '',
+    ].join('\n'),
   );
   await writeFile(join(firstContent, 'second-page.md'), '# Second\n');
   await writeFile(join(firstContent, 'pic.svg'), '<svg></svg>');
 
   await writeFile(
     join(secondContent, 'page.mdx'),
-    '# Second\n\nSECOND_BODY\n\n[First](./first-page.md)\n\n![Pic](./pic.svg)\n',
+    [
+      '# Second',
+      '',
+      'SECOND_BODY',
+      '',
+      '[First](./first-page.md)',
+      '',
+      '![Pic](./pic.svg)',
+      '',
+    ].join('\n'),
   );
   await writeFile(join(secondContent, 'first-page.md'), '# First\n');
   await writeFile(join(secondContent, 'pic.svg'), '<svg></svg>');
@@ -508,8 +526,8 @@ try {
   }
 
   const assetPattern = /\/_phyllo\/media\/[a-z0-9]+\.svg/;
-  const reusedAsset = assetPattern.exec(reusedHtml)?.[0];
-  const freshAsset = assetPattern.exec(freshHtml)?.[0];
+  const [reusedAsset] = assetPattern.exec(reusedHtml) ?? [];
+  const [freshAsset] = assetPattern.exec(freshHtml) ?? [];
 
   if (reusedAsset === undefined || reusedAsset !== freshAsset) {
     throw new Error('内容根目录切换后复用构建与全新构建的资源地址不一致。');
@@ -537,7 +555,9 @@ try {
 
   await writeFile(
     join(siblingRoot, 'shared/posts/article.mdx'),
-    "import Note from '../.fragments/note.mdx';\n\n<Note />\n",
+    ["import Note from '../.fragments/note.mdx';", '', '<Note />', ''].join(
+      '\n',
+    ),
   );
   await writeFile(join(siblingRoot, 'shared/posts/target.md'), '# Target\n');
 
@@ -610,19 +630,11 @@ try {
     join(conflictRoot, 'node_modules'),
   );
 
-  let overlapError = false;
-
-  try {
-    await buildSite(conflictRoot);
-  } catch (error) {
-    overlapError = String(error).includes(
-      'outdir must not overlap content sources.',
-    );
-  }
-
-  if (!overlapError) {
-    throw new Error('输出目录包含链接内容来源时未报错。');
-  }
+  await rejects(
+    buildSite(conflictRoot),
+    /outdir must not overlap content sources\./,
+    '输出目录包含链接内容来源时必须报错。',
+  );
 
   for (const path of ['dist/source/article.md', 'dist/existing.txt']) {
     if (!(await file(join(conflictRoot, path)).exists())) {
@@ -643,7 +655,12 @@ try {
 
         await writeFile(
           join(site, 'content/page.mdx'),
-          "import Note from './.fragments/note.mdx';\n\n<Note />\n",
+          [
+            "import Note from './.fragments/note.mdx';",
+            '',
+            '<Note />',
+            '',
+          ].join('\n'),
         );
         await writeFile(join(site, 'dist/source/note.mdx'), 'NOTE_BODY\n');
 
@@ -658,7 +675,7 @@ try {
 
         await writeFile(
           join(site, 'content/page.mdx'),
-          '# Page\n\n![Pic](./media/pic.svg)\n',
+          ['# Page', '', '![Pic](./media/pic.svg)', ''].join('\n'),
         );
         await writeFile(join(site, 'dist/source/pic.svg'), '<svg></svg>\n');
 
@@ -673,12 +690,21 @@ try {
 
         await writeFile(
           join(site, 'components/icon.tsx'),
-          "import icon from '../dist/source/js.svg';\n\nexport default function Icon() {\n  return <img src={icon} />;\n}\n",
+          [
+            "import icon from '../dist/source/js.svg';",
+            '',
+            'export default function Icon() {',
+            '  return <img src={icon} />;',
+            '}',
+            '',
+          ].join('\n'),
         );
 
         await writeFile(
           join(site, 'content/page.mdx'),
-          "import Icon from '../components/icon';\n\n<Icon />\n",
+          ["import Icon from '../components/icon';", '', '<Icon />', ''].join(
+            '\n',
+          ),
         );
         await writeFile(join(site, 'dist/source/js.svg'), '<svg></svg>\n');
 
@@ -692,12 +718,22 @@ try {
       prepare: async (site: string) => {
         await writeFile(
           join(site, 'dist/source/Panel.tsx'),
-          'export default function Panel() {\n  return <div data-panel />;\n}\n',
+          [
+            'export default function Panel() {',
+            '  return <div data-panel />;',
+            '}',
+            '',
+          ].join('\n'),
         );
 
         await writeFile(
           join(site, 'content/page.mdx'),
-          "import Panel from '../dist/source/Panel.tsx';\n\n<Panel />\n",
+          [
+            "import Panel from '../dist/source/Panel.tsx';",
+            '',
+            '<Panel />',
+            '',
+          ].join('\n'),
         );
 
         return 'dist/source/Panel.tsx';
@@ -714,7 +750,7 @@ try {
 
         await writeFile(
           join(site, 'content/page.mdx'),
-          "import '../dist/source/style.css';\n\n# Page\n",
+          ["import '../dist/source/style.css';", '', '# Page', ''].join('\n'),
         );
 
         return 'dist/source/style.css';
@@ -731,7 +767,12 @@ try {
 
         await writeFile(
           join(site, 'content/page.mdx'),
-          "import value from '../dist/source/value.json';\n\n{value.label}\n",
+          [
+            "import value from '../dist/source/value.json';",
+            '',
+            '{value.label}',
+            '',
+          ].join('\n'),
         );
 
         return 'dist/source/value.json';
@@ -751,12 +792,24 @@ try {
         // 组件在输出目录外，仅通过嵌套导入读取输出目录内的模块。
         await writeFile(
           join(site, 'components/Panel.tsx'),
-          "import { helper } from '../dist/source/helper.ts';\n\nexport default function Panel() {\n  return <div data-panel>{helper}</div>;\n}\n",
+          [
+            "import { helper } from '../dist/source/helper.ts';",
+            '',
+            'export default function Panel() {',
+            '  return <div data-panel>{helper}</div>;',
+            '}',
+            '',
+          ].join('\n'),
         );
 
         await writeFile(
           join(site, 'content/page.mdx'),
-          "import Panel from '../components/Panel';\n\n<Panel />\n",
+          [
+            "import Panel from '../components/Panel';",
+            '',
+            '<Panel />',
+            '',
+          ].join('\n'),
         );
 
         return 'dist/source/helper.ts';
@@ -768,7 +821,12 @@ try {
       prepare: async (site: string) => {
         await writeFile(
           join(site, 'dist/source/Panel.tsx'),
-          'export default function Panel() {\n  return <div data-panel />;\n}\n',
+          [
+            'export default function Panel() {',
+            '  return <div data-panel />;',
+            '}',
+            '',
+          ].join('\n'),
         );
 
         await symlink(
@@ -778,7 +836,12 @@ try {
 
         await writeFile(
           join(site, 'content/page.mdx'),
-          "import Panel from '../linked-panel.tsx';\n\n<Panel />\n",
+          [
+            "import Panel from '../linked-panel.tsx';",
+            '',
+            '<Panel />',
+            '',
+          ].join('\n'),
         );
 
         return 'dist/source/Panel.tsx';
@@ -869,13 +932,10 @@ try {
 
     const preserved = await prepare(site);
 
-    let failure = '';
-
-    try {
-      await buildSite(site);
-    } catch (error) {
-      failure = summarizeError(error);
-    }
+    const failure = await buildSite(site).then(
+      () => '',
+      error => summarizeError(error),
+    );
 
     if (
       !failure.includes('must not be inside the output directory') &&
@@ -915,13 +975,15 @@ try {
 
   await writeFile(
     join(hiddenRoot, 'content/page.mdx'),
-    "import Note from './.fragments/note.mdx';\n\n<Note />\n",
+    ["import Note from './.fragments/note.mdx';", '', '<Note />', ''].join(
+      '\n',
+    ),
   );
   await writeFile(join(hiddenRoot, 'content/other.mdx'), '# Other\n');
 
   await writeFile(
     join(hiddenRoot, 'shared/fragments/note.mdx'),
-    '[Other](../other.mdx)\n\n![Pic](./pic.svg)\n',
+    ['[Other](../other.mdx)', '', '![Pic](./pic.svg)', ''].join('\n'),
   );
 
   await writeFile(
@@ -980,12 +1042,12 @@ try {
 
   await writeFile(
     join(duplicateRoot, 'content/a/page.mdx'),
-    "import Note from './.notes/note.mdx';\n\n<Note />\n",
+    ["import Note from './.notes/note.mdx';", '', '<Note />', ''].join('\n'),
   );
 
   await writeFile(
     join(duplicateRoot, 'content/b/page.mdx'),
-    "import Note from './.notes/note.mdx';\n\n<Note />\n",
+    ["import Note from './.notes/note.mdx';", '', '<Note />', ''].join('\n'),
   );
   await writeFile(join(duplicateRoot, 'content/a/target.mdx'), '# A\n');
   await writeFile(join(duplicateRoot, 'content/b/target.mdx'), '# B\n');
@@ -1005,13 +1067,12 @@ try {
     join(duplicateRoot, 'content/b/.notes'),
   );
 
-  let duplicateHidden = '';
-
-  try {
-    await createBuild(duplicateRoot, { development: true });
-  } catch (error) {
-    duplicateHidden = summarizeError(error);
-  }
+  const duplicateHidden = await createBuild(duplicateRoot, {
+    development: true,
+  }).then(
+    () => '',
+    error => summarizeError(error),
+  );
 
   if (
     !duplicateHidden.includes(
@@ -1049,7 +1110,7 @@ try {
 
   await writeFile(
     join(originalRoot, 'content/page.mdx'),
-    "import Note from './.original/note.mdx';\n\n<Note />\n",
+    ["import Note from './.original/note.mdx';", '', '<Note />', ''].join('\n'),
   );
   await writeFile(join(originalRoot, 'content/target.mdx'), '# Target\n');
 
@@ -1060,7 +1121,7 @@ try {
 
   await writeFile(
     join(originalRoot, 'content/a/page.mdx'),
-    "import Note from './.notes/note.mdx';\n\n<Note />\n",
+    ["import Note from './.notes/note.mdx';", '', '<Note />', ''].join('\n'),
   );
   await writeFile(join(originalRoot, 'content/a/target.mdx'), '# A Target\n');
 
@@ -1069,13 +1130,12 @@ try {
     join(originalRoot, 'content/a/.notes'),
   );
 
-  let originalHidden = '';
-
-  try {
-    await createBuild(originalRoot, { development: true });
-  } catch (error) {
-    originalHidden = summarizeError(error);
-  }
+  const originalHidden = await createBuild(originalRoot, {
+    development: true,
+  }).then(
+    () => '',
+    error => summarizeError(error),
+  );
 
   if (
     !originalHidden.includes(
@@ -1183,13 +1243,10 @@ try {
     join(prefixRoot, 'node_modules'),
   );
 
-  let prefixError = '';
-
-  try {
-    await buildSite(prefixRoot);
-  } catch (error) {
-    prefixError = summarizeError(error);
-  }
+  const prefixError = await buildSite(prefixRoot).then(
+    () => '',
+    error => summarizeError(error),
+  );
 
   if (
     !prefixError.includes('Output paths conflict') ||
@@ -1243,13 +1300,10 @@ try {
 
   await rm(probeFile, { force: true });
 
-  let caseError = '';
-
-  try {
-    await buildSite(caseRoot);
-  } catch (error) {
-    caseError = summarizeError(error);
-  }
+  const caseError = await buildSite(caseRoot).then(
+    () => '',
+    error => summarizeError(error),
+  );
 
   if (caseInsensitive) {
     if (!caseError.includes('Output paths conflict on this filesystem')) {
@@ -1291,3 +1345,4 @@ try {
 } finally {
   await rm(root, { recursive: true, force: true });
 }
+import { rejects } from 'node:assert/strict';

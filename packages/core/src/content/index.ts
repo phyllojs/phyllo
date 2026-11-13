@@ -195,19 +195,15 @@ export async function resolveContentDirectories(
       continue;
     }
 
-    let real: string;
-
-    try {
-      real = await realpath(logical);
-    } catch (error) {
+    const real = await realpath(logical).catch(error => {
       // 断链按扫描排除处理，其他文件系统错误继续抛出。
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        continue;
+        return undefined;
       }
       throw error;
-    }
+    });
 
-    if (!(await stat(logical)).isDirectory()) {
+    if (real === undefined || !(await stat(logical)).isDirectory()) {
       continue;
     }
     register(real, logical);
