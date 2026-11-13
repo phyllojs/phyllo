@@ -1,6 +1,6 @@
 {
   "name": "@phyllo/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The Bun build engine for Phyllo.",
   "keywords": [
     "bun",

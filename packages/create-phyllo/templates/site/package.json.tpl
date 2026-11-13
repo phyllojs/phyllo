@@ -10,14 +10,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "phyllo": "^0.1.0",
+    "phyllo": "^0.2.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "__THEME__": "__THEME_VERSION__"
   },
   "devDependencies": {
-    "@phyllo/cli": "^0.1.0",
-    "@phyllo/core": "^0.1.0",
+    "@phyllo/cli": "^0.2.0",
+    "@phyllo/core": "^0.2.0",
     "@types/bun": "^1.4.0",
     "@types/mdx": "^2.0.14",
     "@types/react": "^19.2.0",

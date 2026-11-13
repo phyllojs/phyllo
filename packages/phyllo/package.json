@@ -1,6 +1,6 @@
 {
   "name": "phyllo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A Bun-only framework for building documentation sites and blogs with Markdown and MDX.",
   "keywords": [
     "phyllo",

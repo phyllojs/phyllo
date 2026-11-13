@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "phyllo": "^0.1.0",
+    "phyllo": "^0.2.0",
     "react": "^19.3.0"
   },
   "devDependencies": {
