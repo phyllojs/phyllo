@@ -307,7 +307,10 @@ try {
   );
 
   // 错误场景：非对象 frontmatter 与导出名冲突。
-  await write(join(root, 'content/bad.mdx'), '---\n- a\n- b\n---\n\n# Bad\n');
+  await write(
+    join(root, 'content/bad.mdx'),
+    ['---', '- a', '- b', '---', '', '# Bad', ''].join('\n'),
+  );
   await expectBuildError('非对象 frontmatter', 'Frontmatter must be an object');
   await rm(join(root, 'content/bad.mdx'));
 

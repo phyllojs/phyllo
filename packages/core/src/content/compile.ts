@@ -2,6 +2,7 @@ import { file, hash, YAML } from 'bun';
 import { basename, dirname, extname, relative, resolve, sep } from 'node:path';
 
 import { compile } from '@mdx-js/mdx';
+import type { Root as HastRoot } from 'hast';
 import type { Nodes, Root } from 'mdast';
 import type { ContentPage, Frontmatter, SearchDocument } from 'phyllo';
 import rehypeRaw from 'rehype-raw';
@@ -13,87 +14,9 @@ import { type Project, assertInputOutsideOutdir } from '../config/project';
 import { resolvePath } from '../utils/fs';
 import { isWithin } from '../utils/path';
 
+import { type DocumentSection, analyzeDocument } from './document';
 import { rehypeHighlight } from './highlight';
 import { pageUrl } from './paths';
-
-/**
- * 判断语法树中是否存在正文内容。
- *
- * @param node - 语法树节点。
- * @returns 节点包含正文时为 `true`。
- */
-function hasContent(node: Nodes): boolean {
-  if (
-    node.type === 'yaml' ||
-    node.type === 'mdxjsEsm' ||
-    node.type === 'definition'
-  ) {
-    return false;
-  }
-
-  if (node.type === 'mdxFlowExpression' || node.type === 'mdxTextExpression') {
-    return !!node.data?.estree?.body.length;
-  }
-
-  if (node.type === 'html') {
-    return !!node.value.replace(/<!--[\s\S]*?-->/g, '').trim();
-  }
-
-  if (node.type === 'text') {
-    return !!node.value.trim();
-  }
-
-  if (node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') {
-    return true;
-  }
-  return 'children' in node ? node.children.some(hasContent) : true;
-}
-
-/**
- * 拼接语法树节点的纯文本。
- *
- * @param node - 语法树节点。
- * @returns 节点及其子节点的文本内容。
- */
-function textContent(node: Nodes): string {
-  if ('value' in node) {
-    return node.value;
-  }
-  return 'children' in node ? node.children.map(textContent).join('') : '';
-}
-
-/**
- * 搜索段落。
- */
-interface SearchSection {
-  /** 段落地址，标题段带锚点。 */
-  url: string;
-  /** 段落标题，页面段为空串。 */
-  heading: string;
-  /** 段落文本。 */
-  text: string;
-}
-
-/**
- * 生成不与已有锚点重复的标题锚点。
- *
- * @param base - 由标题文本生成的锚点。
- * @param used - 当前页面已使用的锚点。
- * @returns 可用的锚点。
- */
-function uniqueAnchor(base: string, used: Set<string>): string {
-  if (!used.has(base)) {
-    return base;
-  }
-
-  for (let suffix = 2; ; suffix += 1) {
-    const candidate = `${base}-${suffix}`;
-
-    if (!used.has(candidate)) {
-      return candidate;
-    }
-  }
-}
 
 /**
  * 解码内容链接中的路径。
@@ -107,124 +30,6 @@ function decodeLink(value: string): string | undefined {
   } catch {
     return undefined;
   }
-}
-
-/**
- * 把语法树切分为搜索段落，并为标题分配锚点。
- *
- * @param tree - Markdown 语法树。
- * @param url - 页面地址，用于生成带锚点的段落地址。
- * @returns 页面级与各标题级的搜索段落。
- * @throws 同一页面出现重复锚点时抛出错误。
- */
-function searchSections(tree: Root, url: string): SearchSection[] {
-  const initial: SearchSection = { url, heading: '', text: '' };
-  const sections: SearchSection[] = [initial];
-  const used = new Set<string>();
-  // 当前写入的搜索段落，遇到标题时切换。
-  const cursor = { section: initial };
-
-  function reserve(node: Nodes) {
-    if (node.type === 'heading') {
-      const [last] = node.children.toReversed();
-
-      if (last?.type === 'text') {
-        const match = /\s+\{#(?<id>[^\s{}]+)\}\s*$/.exec(last.value);
-        const id = match?.groups?.['id'];
-
-        if (match && id !== undefined) {
-          last.value = last.value.slice(0, match.index);
-          node.data ??= {};
-          node.data.hProperties = { ...node.data.hProperties, id };
-        }
-      }
-    }
-    const id = node.data?.hProperties?.id;
-
-    if (typeof id === 'string') {
-      if (used.has(id)) {
-        throw new Error(`Duplicate anchor #${id} in ${url}`);
-      }
-      used.add(id);
-    }
-
-    if (
-      node.type === 'mdxJsxFlowElement' ||
-      node.type === 'mdxJsxTextElement'
-    ) {
-      for (const attribute of node.attributes) {
-        if (
-          attribute.type === 'mdxJsxAttribute' &&
-          attribute.name === 'id' &&
-          typeof attribute.value === 'string'
-        ) {
-          if (used.has(attribute.value)) {
-            throw new Error(`Duplicate anchor #${attribute.value} in ${url}`);
-          }
-          used.add(attribute.value);
-        }
-      }
-    }
-
-    if ('children' in node) {
-      node.children.forEach(reserve);
-    }
-  }
-
-  function visit(node: Nodes) {
-    if (node.type === 'heading') {
-      const heading = textContent(node).trim();
-      const explicitId = node.data?.hProperties?.id;
-      const id =
-        typeof explicitId === 'string'
-          ? explicitId
-          : uniqueAnchor(
-              heading
-                .toLowerCase()
-                .replace(/[^\p{L}\p{N}]+/gu, '-')
-                .replace(/^-|-$/g, '') || 'section',
-              used,
-            );
-
-      if (typeof explicitId !== 'string') {
-        used.add(id);
-        node.data ??= {};
-        node.data.hProperties = { ...node.data.hProperties, id };
-      }
-
-      if (node.depth === 1) {
-        return;
-      }
-      const next = {
-        url: `${url}#${encodeURIComponent(id)}`,
-        heading,
-        text: '',
-      };
-
-      cursor.section = next;
-      sections.push(next);
-
-      return;
-    }
-
-    if (
-      node.type === 'text' ||
-      node.type === 'inlineCode' ||
-      node.type === 'code'
-    ) {
-      cursor.section.text += `${node.value} `;
-    } else if ('children' in node) {
-      node.children.forEach(visit);
-    }
-  }
-
-  reserve(tree);
-  visit(tree);
-
-  return sections.map(section => ({
-    ...section,
-    text: section.text.replace(/\s+/g, ' ').trim(),
-  }));
 }
 
 /**
@@ -271,7 +76,7 @@ interface ContentAnalysis {
   /** 页面是否包含正文。 */
   hasContent: boolean;
   /** 搜索段落。 */
-  sections: SearchSection[];
+  sections: DocumentSection[];
 }
 
 /**
@@ -400,9 +205,6 @@ export async function compileContent(
 
   function analyze() {
     return async (tree: Root) => {
-      analysis.hasContent = hasContent(tree);
-      analysis.sections = searchSections(tree, url);
-
       await walk(tree, async node => {
         if (node.type === 'yaml') {
           const value: unknown = YAML.parse(node.value);
@@ -414,10 +216,6 @@ export async function compileContent(
             throw new Error(`Frontmatter must be an object: ${filePath}`);
           }
           analysis.frontmatter = (value ?? {}) as Frontmatter;
-        }
-
-        if (node.type === 'heading' && node.depth === 1 && !analysis.heading) {
-          analysis.heading = textContent(node);
         }
 
         if (
@@ -474,6 +272,20 @@ export async function compileContent(
     };
   }
 
+  function analyzeHtml() {
+    return (tree: HastRoot) => {
+      const { heading, sections, hasContent } = analyzeDocument(
+        tree,
+        url,
+        config.search,
+      );
+
+      analysis.heading = heading;
+      analysis.sections = sections;
+      analysis.hasContent = hasContent;
+    };
+  }
+
   const format = extname(filename) === '.md' ? 'md' : 'mdx';
   // 仅对 MDX 导出 frontmatter；与页面数据共用解析器，空块归一化为空对象。
   const frontmatterPlugins: Array<
@@ -510,6 +322,7 @@ export async function compileContent(
         ...(format === 'md' ? [rehypeRaw] : []),
         ...(config.markdown.highlight ? [rehypeHighlight] : []),
         ...config.markdown.rehypePlugins,
+        analyzeHtml,
       ],
     },
   );

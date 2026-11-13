@@ -155,4 +155,4 @@ Markdown 与 MDX 默认支持表格、任务列表和 frontmatter。Shiki 在构
 
 额外的内容处理插件通过 `remarkPlugins` 或 `rehypePlugins` 配置。插件安装后需要在配置文件中导入。
 
-自定义 `rehypePlugins` 在内置高亮之后执行。使用其他高亮插件时，设置 `markdown.highlight: false`，避免重复处理。
+自定义 `rehypePlugins` 在内置高亮之后执行。Phyllo 随后根据最终的语法树判断正文是否存在，并生成页面标题、标题锚点和搜索索引。依赖标题 `id` 的插件需要先配置生成 `id` 的插件，例如在 `rehype-autolink-headings` 前配置 `rehype-slug`。使用其他高亮插件时，设置 `markdown.highlight: false`，避免重复处理。
