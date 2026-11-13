@@ -1,4 +1,4 @@
-import { basename, relative } from 'node:path';
+import { basename } from 'node:path';
 
 import { Command, Option } from 'rebake';
 import { input } from 'rebake/prompts';
@@ -39,13 +39,14 @@ export class InitCommand {
       }
       const root = await createProject(target, InitCommand.theme);
 
-      const local = relative(process.cwd(), root);
-      const location = local && !local.startsWith('..') ? local : root;
-
       console.log(`Created ${root}`);
 
       console.log(
-        `Next: cd ${JSON.stringify(location)} && bun install && bun run dev`,
+        [
+          'Next: open the project directory and run:',
+          '  bun install',
+          '  bun run dev',
+        ].join('\n'),
       );
     }, extraArguments);
   }
