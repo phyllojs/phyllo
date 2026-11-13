@@ -32,6 +32,24 @@ bun run build
 
 将所有请求重写到首页会导致文章无法访问。上传时应保留 `dist/` 中的完整目录结构。
 
+## 自定义 404 页面 \{#not-found\}
+
+需要在地址不存在时显示自定义内容，可以新建 `content/404.mdx`：
+
+```mdx
+# 页面不存在
+
+你访问的页面不存在，请检查地址，或 [返回首页](/)。
+```
+
+构建后会生成 `dist/404.html`，也可以使用 `content/404.md`。404 页面使用站点的主题，支持 MDX 组件与客户端交互。
+
+托管服务负责在找不到页面时返回 `404.html`，并设置 HTTP 状态。例如 [Cloudflare Pages](https://developers.cloudflare.com/pages/configuration/serving-pages/#not-found-behavior) 会查找请求路径附近的 `404.html`，最终查找到站点根目录。其他平台需要按其文档配置错误页。
+
+如果用户访问不存在的 `/guide/missing`，托管服务可以返回 `404.html`，地址栏仍保留 `/guide/missing`。Phyllo 使用 404 页面的数据初始化交互，无需跳转到 `/404`。
+
+开发时可直接访问 `/404` 预览内容，未知地址仍返回开发服务的普通 404 响应。未编写 404 页面时，部署后的行为由托管服务配置决定。
+
 ## 自动构建 \{#continuous-deployment\}
 
 如果文章保存在代码仓库中，支持 Bun 的托管平台可以在提交后自动构建。工作目录设为站点根目录，其他设置如下：

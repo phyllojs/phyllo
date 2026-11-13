@@ -1,31 +1,20 @@
-import type { SiteApp } from './app';
 import type { Resources } from './document';
 
-/**
- * 由地址栏路径解析页面地址，去掉 index.html 与尾斜杠。
- *
- * @param app - 站点应用。
- * @param pathname - 地址栏路径。
- * @returns 页面地址。
- */
-export function resolveClientUrl(app: SiteApp, pathname: string) {
-  return app.getPage(pathname)?.url === pathname
-    ? pathname
-    : pathname
-        .replace(/^\/index\.html$/, '/')
-        .replace(/\.html$/, '')
-        .replace(/\/$/, '') || '/';
-}
+/** 服务端渲染后交给浏览器接管的数据。 */
+type HydrationData = Resources & {
+  url: string;
+  elements: NonNullable<Resources['elements']>;
+};
 
 /**
  * 读取服务端输出的资源描述。
  *
  * @returns 当前页面的资源。
  */
-export function readResources(): Resources {
+export function readResources(): HydrationData {
   return JSON.parse(
     document.getElementById('phyllo-resources')!.textContent!,
-  ) as Resources;
+  ) as HydrationData;
 }
 
 /**

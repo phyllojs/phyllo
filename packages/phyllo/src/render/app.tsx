@@ -1,3 +1,4 @@
+import { runWithPage } from 'phyllo/page';
 import type { ComponentType, ReactNode } from 'react';
 
 import { Context } from '../context';
@@ -20,7 +21,7 @@ interface AppOptions {
 /**
  * 渲染页面所需的属性。
  */
-interface AppProps {
+interface RenderProps {
   /** 当前页面的内容组件。 */
   Content?: ComponentType;
   /** 当前页面的头部资源。 */
@@ -28,23 +29,24 @@ interface AppProps {
 }
 
 /**
- * 创建站点应用：按地址查找页面并渲染主题布局。
+ * 创建站点应用：按地址查找页面并创建主题节点。
  *
  * @param options - 站点应用的输入。
- * @returns 页面查找函数与渲染组件。
+ * @returns 页面绑定函数、页面查找函数与主题节点创建函数。
  */
 export function createApp(options: AppOptions) {
   const { Layout, pages, home } = options;
 
   return {
+    runWithPage,
     getPage(url: string) {
       const match = pages.find(page => page.url === url);
 
       return match ?? (url === '/' ? home : undefined);
     },
-    App({ Content, resources }: AppProps) {
+    render({ Content, resources }: RenderProps) {
       return (
-        <Context value={{ resources }}>
+        <Context value={resources}>
           <Layout>{Content && <Content />}</Layout>
         </Context>
       );

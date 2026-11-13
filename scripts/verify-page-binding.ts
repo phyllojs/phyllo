@@ -1,4 +1,13 @@
-import { mkdtemp, realpath, rm, symlink, writeFile } from 'node:fs/promises';
+import { throws } from 'node:assert/strict';
+import {
+  cp,
+  mkdir,
+  mkdtemp,
+  realpath,
+  rm,
+  symlink,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -13,6 +22,7 @@ import { verifyProject } from './verify-project';
  *
  * - 服务端与浏览器分别解析到条件入口，浏览器产物不含服务端作用域实现；
  * - 生成入口与公共 Hooks 使用同一份存储（模块实例一致）；
+ * - core 与站点分别安装 Phyllo 时，渲染器使用站点应用的页面绑定；
  * - 服务端作用域覆盖异步边界与并发，作用域外读取报错，异常不污染后续渲染；
  * - 浏览器绑定在回调结束后保持可读；
  * - `useFrontmatter()` 读取宿主页面。
@@ -145,17 +155,7 @@ try {
   }
 
   // 服务端作用域外读取报错。
-  let outside = false;
-
-  try {
-    server.module.getCurrentPage();
-  } catch {
-    outside = true;
-  }
-
-  if (!outside) {
-    throw new Error('服务端作用域外读取未报错。');
-  }
+  throws(() => server.module.getCurrentPage(), '服务端作用域外读取必须报错。');
 
   // 异常不污染后续渲染。
   try {
@@ -220,15 +220,98 @@ try {
         `${target} 目标在 Phyllo 插件下打包失败。`,
       );
     }
-    const code = await plugin.outputs[0]!.text();
+    const [output] = plugin.outputs;
+
+    if (!output) {
+      throw new Error(`${target} 目标在 Phyllo 插件下未生成入口。`);
+    }
+    const code = await output.text();
 
     if (target === 'browser' && code.includes('async_hooks')) {
       throw new Error('浏览器产物选择了服务端条件入口。');
     }
   }
 
+  // 模拟独立安装：core 与站点各有一份真实的 Phyllo 源码。
+  const site = join(root, 'dual/site');
+  const core = join(root, 'dual/core');
+  const packageRoot = join(import.meta.dir, '../packages/phyllo');
+
+  for (const directory of [site, core]) {
+    const destination = join(directory, 'node_modules/phyllo');
+
+    await mkdir(destination, { recursive: true });
+
+    await cp(join(packageRoot, 'src'), join(destination, 'src'), {
+      recursive: true,
+    });
+
+    await cp(
+      join(packageRoot, 'package.json'),
+      join(destination, 'package.json'),
+    );
+
+    await symlink(
+      await realpath(join(packageRoot, 'node_modules/minisearch')),
+      join(directory, 'node_modules/minisearch'),
+    );
+  }
+
+  await cp(
+    join(import.meta.dir, '../packages/core/src/runtime.tsx'),
+    join(core, 'runtime.tsx'),
+  );
+
+  const entry = join(site, 'entry.tsx');
+
+  await writeFile(
+    entry,
+    [
+      "import { createRenderer } from '../core/runtime';",
+      "import { usePage, useFrontmatter } from 'phyllo';",
+      "import { createApp } from 'phyllo/render';",
+      "const page = { url: '/example', title: 'Example', filePath: 'example.mdx', frontmatter: { title: 'Example' }, hasContent: true };",
+      "function Content() { return <p>{usePage().url + ':' + useFrontmatter().title}</p>; }",
+      'const app = createApp({ Layout: ({ children }) => <main>{children}</main>, pages: [page] });',
+      "export const html = await createRenderer(app, { '/example': Content })('/example', { styles: [], scripts: [] });",
+      '',
+    ].join('\n'),
+  );
+
+  const project = verifyProject(site);
+  const result = await Bun.build({
+    entrypoints: [entry],
+    target: 'bun',
+    plugins: [
+      contentPlugin({
+        project,
+        compile: createCompiler(project),
+        files: new Map(),
+        server: true,
+      }),
+    ],
+  });
+
+  if (!result.success) {
+    throw new AggregateError(result.logs, '双副本页面绑定打包失败。');
+  }
+  const [output] = result.outputs;
+
+  if (!output) {
+    throw new Error('双副本页面绑定没有生成入口。');
+  }
+  const filename = join(root, 'bundle.dual.mjs');
+
+  await Bun.write(filename, output);
+
+  const { html } = (await import(filename)) as { html: string };
+
+  if (!html.includes('<p>/example:Example</p>')) {
+    throw new Error('独立安装的渲染器未使用站点应用的页面绑定。');
+  }
+
   console.log(
-    '当前页面绑定验证通过：条件解析、模块实例、异步并发、作用域语义、宿主 frontmatter 与 react-dom 目标条件入口',
+    '当前页面绑定验证通过：条件解析、独立安装、模块实例、异步并发、作用域语义、宿主 frontmatter 与 react-dom 目标条件入口',
   );
 } finally {
   await rm(root, { recursive: true, force: true });

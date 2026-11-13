@@ -1,3 +1,4 @@
+import { getCurrentPage } from 'phyllo/page';
 import { type ReactNode, createElement, useContext } from 'react';
 
 import { Context } from '../context';
@@ -34,7 +35,7 @@ interface HeadResourcesProps {
  */
 export function HeadResources({ resources, children }: HeadResourcesProps) {
   const context = useContext(Context);
-  const current = resources ?? context?.resources;
+  const current = resources ?? context;
   const head = current?.head;
 
   return (
@@ -97,7 +98,10 @@ function Scripts({ resources }: { resources?: Resources }) {
   if (!resources) {
     return null;
   }
-  const json = JSON.stringify(resources).replace(/</g, '\\u003c');
+  const json = JSON.stringify({
+    ...resources,
+    url: getCurrentPage().url,
+  }).replace(/</g, '\\u003c');
 
   return (
     <>

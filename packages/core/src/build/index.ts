@@ -29,7 +29,7 @@ import { createCompiler } from '../content/compile';
 import { writeTypes } from '../content/types';
 import { resolveRedirects } from '../routing/redirects';
 import { resolveRoutes } from '../routing/routes';
-import type { RenderRuntime } from '../runtime';
+import { type RenderRuntime, renderRedirect } from '../runtime';
 import { writeIfChanged } from '../utils/fs';
 import { importBundle } from '../utils/module';
 import { findPackageRoot, isWithin } from '../utils/path';
@@ -369,8 +369,7 @@ export async function createBuild(
   if (!serverEntry) {
     throw new Error('Static rendering code did not produce an entry point.');
   }
-  const { render, renderRedirect } =
-    await importBundle<RenderRuntime>(serverEntry);
+  const { render } = await importBundle<RenderRuntime>(serverEntry);
 
   if (!development) {
     for (const [url, filename] of routes) {
