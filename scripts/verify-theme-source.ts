@@ -69,12 +69,12 @@ async function clientBundle(server: Server, signal: AbortSignal) {
   const page = await (
     await fetch(new URL('/page', server.url), { signal })
   ).text();
-  const match = /src="(\/_bun\/client\/[^"]+)"/.exec(page);
+  const [, entry] = /src="(\/_bun\/client\/[^"]+)"/.exec(page) ?? [];
 
-  if (match === null) {
+  if (entry === undefined) {
     throw new Error('开发页面缺少客户端入口。');
   }
-  return (await fetch(new URL(match[1]!, server.url), { signal })).text();
+  return (await fetch(new URL(entry, server.url), { signal })).text();
 }
 
 /**
@@ -82,24 +82,24 @@ async function clientBundle(server: Server, signal: AbortSignal) {
  *
  * @param server - 开发服务实例。
  * @param marker - 页面中必须出现的标记。
+ * @param status - 期望的响应状态，默认为 200。
  * @returns 包含标记的页面 HTML。
  * @throws 超时仍未包含时抛出错误。
  */
-async function waitForPage(server: Server, marker: string) {
+async function waitForPage(server: Server, marker: string, status = 200) {
   const signal = AbortSignal.timeout(20_000);
 
   let last: string;
 
   for (;;) {
     try {
-      const page = await (
-        await fetch(new URL('/page', server.url), { signal })
-      ).text();
+      const response = await fetch(new URL('/page', server.url), { signal });
+      const page = await response.text();
 
-      if (page.includes(marker)) {
+      if (response.status === status && page.includes(marker)) {
         return page;
       }
-      last = '缺少标记';
+      last = `状态 ${response.status}，${page.includes(marker) ? '已包含标记' : '缺少标记'}`;
     } catch (error) {
       last = String(error);
     }
@@ -178,7 +178,12 @@ async function writeTheme(
 function useTheme(name: string) {
   return writeFile(
     join(root, 'phyllo.config.ts'),
-    `import { defineConfig } from '@phyllo/core';\n\nexport default defineConfig({ theme: ${JSON.stringify(name)} });\n`,
+    [
+      `import { defineConfig } from '@phyllo/core';`,
+      ``,
+      `export default defineConfig({ theme: ${JSON.stringify(name)} });`,
+      ``,
+    ].join('\n'),
   );
 }
 
@@ -198,7 +203,14 @@ function writePage(source: string) {
  * @returns 布局源码。
  */
 function tsxLayout(marker: string) {
-  return `import type { ReactNode } from 'react';\n\nexport default function Layout({ children }: { children?: ReactNode }) {\n  return <div data-theme="${marker}">{children}</div>;\n}\n`;
+  return [
+    `import type { ReactNode } from 'react';`,
+    ``,
+    `export default function Layout({ children }: { children?: ReactNode }) {`,
+    `  return <div data-theme="${marker}">{children}</div>;`,
+    `}`,
+    ``,
+  ].join('\n');
 }
 
 /**
@@ -208,7 +220,14 @@ function tsxLayout(marker: string) {
  * @returns 布局源码。
  */
 function jsLayout(marker: string) {
-  return `import { createElement } from 'react';\n\nexport default function Layout({ children }) {\n  return createElement('main', { 'data-theme': '${marker}' }, children);\n}\n`;
+  return [
+    `import { createElement } from 'react';`,
+    ``,
+    `export default function Layout({ children }) {`,
+    `  return createElement('main', { 'data-theme': '${marker}' }, children);`,
+    `}`,
+    ``,
+  ].join('\n');
 }
 
 /**
@@ -218,7 +237,15 @@ function jsLayout(marker: string) {
  * @returns 布局源码。
  */
 function tsLayout(marker: string) {
-  return `import { createElement } from 'react';\nimport type { ReactNode } from 'react';\n\nexport default function Layout({ children }: { children?: ReactNode }) {\n  return createElement('main', { 'data-theme': '${marker}' }, children);\n}\n`;
+  return [
+    `import { createElement } from 'react';`,
+    `import type { ReactNode } from 'react';`,
+    ``,
+    `export default function Layout({ children }: { children?: ReactNode }) {`,
+    `  return createElement('main', { 'data-theme': '${marker}' }, children);`,
+    `}`,
+    ``,
+  ].join('\n');
 }
 
 /**
@@ -228,7 +255,12 @@ function tsLayout(marker: string) {
  * @returns 布局源码。
  */
 function plainLayout(marker: string) {
-  return `export default function Layout() {\n  return '${marker}';\n}\n`;
+  return [
+    `export default function Layout() {`,
+    `  return '${marker}';`,
+    `}`,
+    ``,
+  ].join('\n');
 }
 
 try {
@@ -252,9 +284,26 @@ try {
   await useTheme('theme-src');
 
   await writeTheme('theme-src', 'src/index.tsx', {
-    'src/index.tsx': `import Heading from './parts/heading.mjs';\nimport type { ReactNode } from 'react';\n\nexport default function Layout({ children }: { children?: ReactNode }) {\n  return (\n    <div data-theme="src-one">\n      <Heading />\n      {children}\n    </div>\n  );\n}\n`,
-    'src/parts/heading.mjs':
-      "export default function Heading() {\n  return 'HEADING_ONE';\n}\n",
+    'src/index.tsx': [
+      "import Heading from './parts/heading.mjs';",
+      "import type { ReactNode } from 'react';",
+      '',
+      'export default function Layout({ children }: { children?: ReactNode }) {',
+      '  return (',
+      '    <div data-theme="src-one">',
+      '      <Heading />',
+      '      {children}',
+      '    </div>',
+      '  );',
+      '}',
+      '',
+    ].join('\n'),
+    'src/parts/heading.mjs': [
+      'export default function Heading() {',
+      "  return 'HEADING_ONE';",
+      '}',
+      '',
+    ].join('\n'),
   });
 
   const first = await createBuild(root, { development: true });
@@ -279,7 +328,12 @@ try {
 
   await writeFile(
     join(nodeModules, 'theme-src/src/parts/heading.mjs'),
-    "export default function Heading() {\n  return 'HEADING_TWO';\n}\n",
+    [
+      'export default function Heading() {',
+      "  return 'HEADING_TWO';",
+      '}',
+      '',
+    ].join('\n'),
   );
 
   const nested = await createBuild(root, {
@@ -295,7 +349,19 @@ try {
   await useTheme('theme-deps');
 
   await writeTheme('theme-deps', 'src/index.tsx', {
-    'src/index.tsx': `import dep from 'theme-dep';\nimport type { ReactNode } from 'react';\n\nexport default function Layout({ children }: { children?: ReactNode }) {\n  return (\n    <div data-theme="deps" data-dep={dep}>\n      {children}\n    </div>\n  );\n}\n`,
+    'src/index.tsx': [
+      "import dep from 'theme-dep';",
+      "import type { ReactNode } from 'react';",
+      '',
+      'export default function Layout({ children }: { children?: ReactNode }) {',
+      '  return (',
+      '    <div data-theme="deps" data-dep={dep}>',
+      '      {children}',
+      '    </div>',
+      '  );',
+      '}',
+      '',
+    ].join('\n'),
     'node_modules/theme-dep/package.json': JSON.stringify({
       name: 'theme-dep',
       type: 'module',
@@ -329,12 +395,41 @@ try {
   await useTheme('theme-context');
 
   await writeTheme('theme-context', 'src/index.tsx', {
-    'src/index.tsx': `import { useContext } from 'react';\nimport type { ReactNode } from 'react';\nimport { ThemeContext } from './context.ts';\n\nexport function Badge() {\n  return <span data-badge>{useContext(ThemeContext)}</span>;\n}\n\nexport default function Layout({ children }: { children?: ReactNode }) {\n  return (\n    <ThemeContext value="BOUND">\n      <div data-theme="context">{children}</div>\n    </ThemeContext>\n  );\n}\n`,
-    'src/context.ts': `import { createContext } from 'react';\n\nexport const ThemeContext = createContext('MISSING');\n`,
+    'src/index.tsx': [
+      "import { useContext } from 'react';",
+      "import type { ReactNode } from 'react';",
+      "import { ThemeContext } from './context.ts';",
+      '',
+      'export function Badge() {',
+      '  return <span data-badge>{useContext(ThemeContext)}</span>;',
+      '}',
+      '',
+      'export default function Layout({ children }: { children?: ReactNode }) {',
+      '  return (',
+      '    <ThemeContext value="BOUND">',
+      '      <div data-theme="context">{children}</div>',
+      '    </ThemeContext>',
+      '  );',
+      '}',
+      '',
+    ].join('\n'),
+    'src/context.ts': [
+      "import { createContext } from 'react';",
+      '',
+      "export const ThemeContext = createContext('MISSING');",
+      '',
+    ].join('\n'),
   });
 
   await writePage(
-    "import { Badge } from 'theme-context';\n\n# Page\n\n<Badge />\n",
+    [
+      "import { Badge } from 'theme-context';",
+      '',
+      '# Page',
+      '',
+      '<Badge />',
+      '',
+    ].join('\n'),
   );
 
   const identity = await renderHtml(
@@ -353,7 +448,25 @@ try {
   await useTheme('theme-conditional');
 
   const conditionalEntry = (kind: string) =>
-    `import { createContext, useContext } from 'react';\nimport type { ReactNode } from 'react';\n\nconst ThemeContext = createContext('MISSING_${kind.toUpperCase()}');\n\nexport function Badge() {\n  return <span data-badge>{useContext(ThemeContext)}</span>;\n}\n\nexport default function Layout({ children }: { children?: ReactNode }) {\n  return (\n    <ThemeContext value="BOUND">\n      <div data-theme="conditional">{children}</div>\n    </ThemeContext>\n  );\n}\n`;
+    [
+      `import { createContext, useContext } from 'react';`,
+      `import type { ReactNode } from 'react';`,
+      ``,
+      `const ThemeContext = createContext('MISSING_${kind.toUpperCase()}');`,
+      ``,
+      `export function Badge() {`,
+      `  return <span data-badge>{useContext(ThemeContext)}</span>;`,
+      `}`,
+      ``,
+      `export default function Layout({ children }: { children?: ReactNode }) {`,
+      `  return (`,
+      `    <ThemeContext value="BOUND">`,
+      `      <div data-theme="conditional">{children}</div>`,
+      `    </ThemeContext>`,
+      `  );`,
+      `}`,
+      ``,
+    ].join('\n');
 
   await writeTheme('theme-conditional', 'runtime.tsx', {
     'runtime.tsx': conditionalEntry('runtime'),
@@ -375,7 +488,14 @@ try {
   );
 
   await writePage(
-    "import { Badge } from 'theme-conditional';\n\n# Page\n\n<Badge />\n",
+    [
+      "import { Badge } from 'theme-conditional';",
+      '',
+      '# Page',
+      '',
+      '<Badge />',
+      '',
+    ].join('\n'),
   );
 
   const conditional = await createBuild(root);
@@ -441,14 +561,26 @@ try {
   await useTheme('theme-asset');
 
   await writeTheme('theme-asset', 'src/index.tsx', {
-    'src/index.tsx': `import icon from './icon.svg';\nimport type { ReactNode } from 'react';\n\nexport default function Layout({ children }: { children?: ReactNode }) {\n  return (\n    <div data-theme="asset">\n      <img src={icon} data-icon />\n      {children}\n    </div>\n  );\n}\n`,
+    'src/index.tsx': [
+      "import icon from './icon.svg';",
+      "import type { ReactNode } from 'react';",
+      '',
+      'export default function Layout({ children }: { children?: ReactNode }) {',
+      '  return (',
+      '    <div data-theme="asset">',
+      '      <img src={icon} data-icon />',
+      '      {children}',
+      '    </div>',
+      '  );',
+      '}',
+      '',
+    ].join('\n'),
     'src/icon.svg': '<svg><!--one--></svg>\n',
   });
 
   const assetFirst = await createBuild(root, { development: true });
-  const firstUrl = /(\/_phyllo\/media\/[a-z0-9]+\.svg)/.exec(
-    await renderHtml(assetFirst),
-  )?.[1];
+  const [firstUrl] =
+    /\/_phyllo\/media\/[a-z0-9]+\.svg/.exec(await renderHtml(assetFirst)) ?? [];
 
   if (firstUrl === undefined) {
     throw new Error('开发构建未生成主题图片地址。');
@@ -465,12 +597,13 @@ try {
     development: true,
     previous: assetFirst,
   });
-  const secondUrl = /(\/_phyllo\/media\/[a-z0-9]+\.svg)/.exec(
-    await renderHtml(assetSecond),
-  )?.[1];
-  const prodUrl = /(\/_phyllo\/media\/[a-z0-9]+\.svg)/.exec(
-    await renderHtml(await createBuild(root)),
-  )?.[1];
+  const [secondUrl] =
+    /\/_phyllo\/media\/[a-z0-9]+\.svg/.exec(await renderHtml(assetSecond)) ??
+    [];
+  const [prodUrl] =
+    /\/_phyllo\/media\/[a-z0-9]+\.svg/.exec(
+      await renderHtml(await createBuild(root)),
+    ) ?? [];
 
   if (secondUrl === undefined || secondUrl === firstUrl) {
     throw new Error('单独修改主题图片后开发媒体地址未更新。');
@@ -536,9 +669,18 @@ try {
   await useTheme('theme-nm');
 
   await writeTheme('theme-nm', 'src/index.tsx', {
-    'src/index.tsx': `import './runtime.js';\nimport type { ReactNode } from 'react';\n\nexport default function Layout({ children }: { children?: ReactNode }) {\n  return <div data-theme="nm">{children}</div>;\n}\n`,
-    'src/runtime.js': `globalThis.__runtimeSource = 'RUNTIME_SOURCE';\n`,
-    'src/runtime.browser.js': `globalThis.__runtimeSource = 'BROWSER_SOURCE';\n`,
+    'src/index.tsx': [
+      "import './runtime.js';",
+      "import type { ReactNode } from 'react';",
+      '',
+      'export default function Layout({ children }: { children?: ReactNode }) {',
+      '  return <div data-theme="nm">{children}</div>;',
+      '}',
+      '',
+    ].join('\n'),
+    'src/runtime.js': "globalThis.__runtimeSource = 'RUNTIME_SOURCE';\n",
+    'src/runtime.browser.js':
+      "globalThis.__runtimeSource = 'BROWSER_SOURCE';\n",
   });
 
   await writeFile(
@@ -559,7 +701,12 @@ try {
   if (!native.success) {
     throw new AggregateError(native.logs, '主题的原生浏览器构建失败。');
   }
-  const nativeCode = await native.outputs[0]!.text();
+  const [nativeOutput] = native.outputs;
+
+  if (!nativeOutput) {
+    throw new Error('主题的原生浏览器构建未生成入口。');
+  }
+  const nativeCode = await nativeOutput.text();
 
   if (
     !nativeCode.includes('BROWSER_SOURCE') ||
@@ -707,7 +854,14 @@ try {
 
   await writeFile(
     join(conflictTheme, 'src/index.tsx'),
-    `import type { ReactNode } from 'react';\n\nexport default function Layout({ children }: { children?: ReactNode }) {\n  return <div data-theme="conflict">{children}</div>;\n}\n`,
+    [
+      "import type { ReactNode } from 'react';",
+      '',
+      'export default function Layout({ children }: { children?: ReactNode }) {',
+      '  return <div data-theme="conflict">{children}</div>;',
+      '}',
+      '',
+    ].join('\n'),
   );
   await writeFile(join(conflictTheme, 'media/icon.svg'), '<svg></svg>\n');
   await writeFile(join(conflictTheme, 'media/existing.txt'), 'existing\n');
@@ -715,22 +869,19 @@ try {
 
   await writeFile(
     join(root, 'phyllo.config.ts'),
-    `import { defineConfig } from '@phyllo/core';\n\nexport default defineConfig({ theme: 'theme-conflict', outdir: 'conflict-theme/media' });\n`,
+    [
+      "import { defineConfig } from '@phyllo/core';",
+      '',
+      "export default defineConfig({ theme: 'theme-conflict', outdir: 'conflict-theme/media' });",
+      '',
+    ].join('\n'),
   );
 
-  let overlapError = false;
-
-  try {
-    await createBuild(root, { development: true });
-  } catch (error) {
-    overlapError = String(error).includes(
-      'outdir must not overlap the theme package.',
-    );
-  }
-
-  if (!overlapError) {
-    throw new Error('输出目录与站点内主题包重叠时未报错。');
-  }
+  await rejects(
+    createBuild(root, { development: true }),
+    /outdir must not overlap the theme package\./,
+    '输出目录与站点内主题包重叠时必须报错。',
+  );
 
   for (const path of ['media/icon.svg', 'media/existing.txt']) {
     if (!(await file(join(conflictTheme, path)).exists())) {
@@ -756,17 +907,29 @@ try {
 
   await writeFile(
     join(exampleTheme, 'src/index.tsx'),
-    `import type { ReactNode } from 'react';\n\nexport default function Layout({ children }: { children?: ReactNode }) {\n  return <div data-theme="example">{children}</div>;\n}\n`,
+    [
+      "import type { ReactNode } from 'react';",
+      '',
+      'export default function Layout({ children }: { children?: ReactNode }) {',
+      '  return <div data-theme="example">{children}</div>;',
+      '}',
+      '',
+    ].join('\n'),
   );
 
   await writeFile(
     join(exampleSite, 'phyllo.config.ts'),
-    `import { defineConfig } from '@phyllo/core';\n\nexport default defineConfig({ theme: 'theme-example' });\n`,
+    [
+      "import { defineConfig } from '@phyllo/core';",
+      '',
+      "export default defineConfig({ theme: 'theme-example' });",
+      '',
+    ].join('\n'),
   );
 
   await writeFile(
     join(exampleSite, 'content/page.mdx'),
-    '# Example\n\nEXAMPLE_BODY\n',
+    ['# Example', '', 'EXAMPLE_BODY', ''].join('\n'),
   );
 
   const exampleModules = join(exampleSite, 'node_modules');
@@ -803,3 +966,4 @@ try {
   await rm(root, { recursive: true, force: true });
   await rm(outer, { recursive: true, force: true });
 }
+import { rejects } from 'node:assert/strict';

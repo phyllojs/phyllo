@@ -53,6 +53,7 @@ try {
 
   manifest.devDependencies.phyllo = `file:${join(import.meta.dir, '../packages/phyllo')}`;
   manifest.devDependencies.react = manifest.peerDependencies.react;
+
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 
   await run(['bun', 'install'], theme);
