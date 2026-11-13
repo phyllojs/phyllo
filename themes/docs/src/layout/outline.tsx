@@ -23,7 +23,7 @@ export function Outline({
             className={heading.level === 3 ? 'outline-subitem' : undefined}
           >
             <a
-              href={`#${heading.id}`}
+              href={`#${encodeURIComponent(heading.id)}`}
               aria-current={
                 activeHeading === heading.id ? 'location' : undefined
               }
