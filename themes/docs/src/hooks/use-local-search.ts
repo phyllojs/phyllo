@@ -27,7 +27,9 @@ export function useLocalSearch(query: string, options: SearchOptions = {}) {
     import.meta.hot.on('bun:afterUpdate', update);
 
     return () => {
-      import.meta.hot?.off('bun:afterUpdate', update);
+      if (import.meta.hot) {
+        import.meta.hot.off('bun:afterUpdate', update);
+      }
     };
   }, [retry]);
 

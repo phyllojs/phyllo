@@ -5,12 +5,12 @@ import type { ContentPage, SiteData } from './data';
  *
  * 由生成的入口在渲染前初始化，与生成数据同源，不重新解析配置、不复制页面列表。
  */
-let siteData:
-  | {
-      site: SiteData;
-      pages: readonly ContentPage[];
-    }
-  | undefined;
+const siteState: {
+  data?: {
+    site: SiteData;
+    pages: readonly ContentPage[];
+  };
+} = import.meta.hot ? import.meta.hot.data : {};
 
 /**
  * 初始化站点数据，由生成的入口调用，主题不调用。
@@ -19,7 +19,7 @@ let siteData:
  * @param pages - 全部内容页面。
  */
 export function initializeSite(site: SiteData, pages: readonly ContentPage[]) {
-  siteData = { site, pages };
+  siteState.data = { site, pages };
 }
 
 /**
@@ -29,6 +29,8 @@ export function initializeSite(site: SiteData, pages: readonly ContentPage[]) {
  * @throws 尚未初始化时抛出错误。
  */
 export function getSiteData() {
+  const siteData = siteState.data;
+
   if (siteData === undefined) {
     throw new Error('Phyllo site data has not been initialized.');
   }

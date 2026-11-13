@@ -1,7 +1,9 @@
 import type { PageData } from './data';
 
 /** 当前文档的页面数据，每个文档对应一个页面。 */
-let currentPage: PageData | undefined;
+const pageState: { page?: PageData } = import.meta.hot
+  ? import.meta.hot.data
+  : {};
 
 /**
  * 绑定当前文档的页面并执行接管或更新。
@@ -11,7 +13,7 @@ let currentPage: PageData | undefined;
  * @returns 渲染的返回值。
  */
 export function runWithPage<T>(page: PageData, render: () => T): T {
-  currentPage = page;
+  pageState.page = page;
 
   return render();
 }
@@ -23,6 +25,8 @@ export function runWithPage<T>(page: PageData, render: () => T): T {
  * @throws 尚未绑定时抛出错误。
  */
 export function getCurrentPage(): PageData {
+  const currentPage = pageState.page;
+
   if (currentPage === undefined) {
     throw new Error('Phyllo current page has not been initialized.');
   }
