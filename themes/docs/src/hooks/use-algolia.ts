@@ -1,6 +1,8 @@
 import type { SearchResult } from 'phyllo';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { parseDocSearchRecord } from './algolia-record';
+
 /**
  * Algolia 搜索配置。
  */
@@ -17,13 +19,6 @@ export interface AlgoliaSearchOptions {
   lang?: string;
   /** 搜索结果数量上限，默认为 20。 */
   limit?: number;
-}
-
-/** Algolia DocSearch 爬虫生成的记录。 */
-interface DocSearchRecord {
-  url: string;
-  hierarchy: Record<string, string | null>;
-  content?: string | null;
 }
 
 interface LiteClient {
@@ -100,7 +95,7 @@ async function searchAlgolia(
   lang?: string,
 ): Promise<SearchResult[]> {
   const client = await loadClient(config.appId, config.apiKey);
-  const response = await client.search<DocSearchRecord>({
+  const response = await client.search<unknown>({
     requests: [
       {
         indexName: config.indexName,
@@ -120,16 +115,8 @@ async function searchAlgolia(
       continue;
     }
 
-    for (const hit of group.hits) {
-      if (
-        !hit.url ||
-        !hit.hierarchy ||
-        !/^(https?:\/\/|\/(?!\/))/.test(hit.url)
-      ) {
-        throw new Error(
-          'Algolia records must use the DocSearch schema with url and hierarchy.',
-        );
-      }
+    for (const value of group.hits) {
+      const hit = parseDocSearchRecord(value);
       const levels = Array.from(
         { length: 7 },
         (_, level) => hit.hierarchy[`lvl${level}`],
