@@ -3,9 +3,11 @@ import { createApp } from 'phyllo/render';
 import { initializeSite } from 'phyllo/site';
 import Layout from __THEME__;
 
-const site: SiteData = __SITE__;
-const pages: ContentPage[] = __PAGES__;
-const home: PageData | undefined = __HOME__;
+const { site, pages, home } = JSON.parse(__DATA__) as {
+  site: SiteData;
+  pages: ContentPage[];
+  home?: PageData;
+};
 
 initializeSite(site, pages);
 

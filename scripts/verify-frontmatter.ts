@@ -21,6 +21,7 @@ import { createCompiler } from '../packages/core/src/content/compile';
  * - 无 frontmatter、空块与注释块导出空对象；
  * - 片段读取自身字段，`useFrontmatter()` 读取宿主页面；
  * - 用户 remark 插件修改 YAML 后，页面数据与导出一致；
+ * - `__proto__` 等普通字段在内容导出和页面数据中保持一致；
  * - 非对象 frontmatter 与导出名冲突报错；
  * - `.md` 不导出 frontmatter，`.mdx` 导出；
  * - 生成 `.phyllo/mdx.d.ts`。
@@ -140,7 +141,11 @@ try {
       'my-key: 特殊字段',
       'author:',
       '  name: 作者',
+      '__proto__:',
+      '  marker: 原型字段',
       '---',
+      '',
+      "import { useFrontmatter } from 'phyllo';",
       '',
       "{'PLAIN=' + frontmatter.title}",
       '',
@@ -148,16 +153,23 @@ try {
       '',
       "{'NESTED=' + frontmatter.author.name}",
       '',
+      "{'EXPORTED_PROTO=' + Object.hasOwn(frontmatter, '__proto__') + ':' + frontmatter.__proto__.marker}",
+      '',
+      "{'PAGE_PROTO=' + Object.hasOwn(useFrontmatter(), '__proto__') + ':' + useFrontmatter().__proto__.marker}",
+      '',
     ].join('\n'),
   );
 
   const emptyBody = "{'EMPTY=' + JSON.stringify(frontmatter)}\n";
 
-  await write(join(root, 'content/empty.mdx'), `---\n---\n\n${emptyBody}`);
+  await write(
+    join(root, 'content/empty.mdx'),
+    [`---`, `---`, ``, `${emptyBody}`].join('\n'),
+  );
 
   await write(
     join(root, 'content/comment.mdx'),
-    `---\n# comment\n---\n\n${emptyBody}`,
+    [`---`, `# comment`, `---`, ``, `${emptyBody}`].join('\n'),
   );
   await write(join(root, 'content/none.mdx'), emptyBody);
 
@@ -248,6 +260,8 @@ try {
     'PLAIN=示例标题',
     'HYPHEN=特殊字段',
     'NESTED=作者',
+    'EXPORTED_PROTO=true:原型字段',
+    'PAGE_PROTO=true:原型字段',
   ]);
 
   for (const url of ['/empty', '/comment', '/none']) {

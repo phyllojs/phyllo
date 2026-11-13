@@ -105,9 +105,7 @@ export async function createEntrySources(
   return {
     app: fill(app, {
       THEME: quote(theme),
-      SITE: JSON.stringify(site, null, 2),
-      PAGES: JSON.stringify(pages, null, 2),
-      HOME: home === undefined ? 'undefined' : JSON.stringify(home, null, 2),
+      DATA: quote(JSON.stringify({ site, pages, home })),
       CONFIG_VERSION: quote(configVersion),
     }),
     client: fill(client, {
