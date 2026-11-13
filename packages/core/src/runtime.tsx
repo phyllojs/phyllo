@@ -109,12 +109,19 @@ export function renderRedirect(destination: string) {
     <html>
       <head>
         <meta charSet="utf-8" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `location.replace(${JSON.stringify(destination).replace(/</g, '\\u003c')});`,
+          }}
+        />
         <meta httpEquiv="refresh" content={`0;url=${destination}`} />
         <link rel="canonical" href={destination} />
         <title>Redirect</title>
       </head>
       <body>
-        <a href={destination}>{destination}</a>
+        <noscript>
+          <a href={destination}>{destination}</a>
+        </noscript>
       </body>
     </html>
   );

@@ -267,5 +267,6 @@ test('重定向页面', () => {
   const html = renderRedirect('/zh');
 
   expect(html).toContain('<meta http-equiv="refresh" content="0;url=/zh"/>');
-  expect(html).toContain('<a href="/zh">/zh</a>');
+  expect(html).toContain('location.replace("/zh")');
+  expect(html).toContain('<noscript><a href="/zh">/zh</a></noscript>');
 });
