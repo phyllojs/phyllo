@@ -79,8 +79,8 @@ test('head 运行时约束', () => {
 });
 
 test('配置缺省值', () => {
-  expect(resolveConfig({ theme: 'phyllo-theme-test' })).toEqual({
-    theme: 'phyllo-theme-test',
+  expect(resolveConfig({ theme: 'phyllo-theme-example' })).toEqual({
+    theme: 'phyllo-theme-example',
     head: {},
     redirects: {},
     search: false,
@@ -90,7 +90,7 @@ test('配置缺省值', () => {
   });
 
   const resolved = resolveConfig({
-    theme: 'phyllo-theme-test',
+    theme: 'phyllo-theme-example',
     title: 'Site',
     lang: 'zh-CN',
     search: true,
@@ -113,11 +113,11 @@ test('配置缺省值', () => {
 
 test('类型以外的配置约束', () => {
   expect(() =>
-    resolveConfig({ theme: 'phyllo-theme-test', lang: 'not a tag' }),
+    resolveConfig({ theme: 'phyllo-theme-example', lang: 'not a tag' }),
   ).toThrow('Invalid language tag: not a tag.');
 
   expect(() =>
-    resolveConfig({ theme: 'phyllo-theme-test', lang: ['en'] } as never),
+    resolveConfig({ theme: 'phyllo-theme-example', lang: ['en'] } as never),
   ).toThrow('lang must be a string.');
 
   expect(() => resolveConfig({ theme: '' })).toThrow(
@@ -129,54 +129,54 @@ test('类型以外的配置约束', () => {
   );
 
   expect(() =>
-    resolveConfig({ theme: 'phyllo-theme-test', head: null } as never),
+    resolveConfig({ theme: 'phyllo-theme-example', head: null } as never),
   ).toThrow('head must be an object.');
 
   expect(() =>
-    resolveConfig({ theme: 'phyllo-theme-test', title: 1 } as never),
+    resolveConfig({ theme: 'phyllo-theme-example', title: 1 } as never),
   ).toThrow('title must be a string.');
 
   expect(() =>
-    resolveConfig({ theme: 'phyllo-theme-test', description: {} } as never),
+    resolveConfig({ theme: 'phyllo-theme-example', description: {} } as never),
   ).toThrow('description must be a string.');
 
   expect(() =>
-    resolveConfig({ theme: 'phyllo-theme-test', redirects: null } as never),
+    resolveConfig({ theme: 'phyllo-theme-example', redirects: null } as never),
   ).toThrow('redirects must be an object.');
 
   expect(() =>
     resolveConfig({
-      theme: 'phyllo-theme-test',
+      theme: 'phyllo-theme-example',
       redirects: { '/a': null },
     } as never),
   ).toThrow('redirects["/a"] must be a string.');
 
   expect(() =>
-    resolveConfig({ theme: 'phyllo-theme-test', search: null } as never),
+    resolveConfig({ theme: 'phyllo-theme-example', search: null } as never),
   ).toThrow('search must be a boolean.');
 
   expect(() =>
-    resolveConfig({ theme: 'phyllo-theme-test', content: null } as never),
+    resolveConfig({ theme: 'phyllo-theme-example', content: null } as never),
   ).toThrow('content must be a string.');
 
   expect(() =>
-    resolveConfig({ theme: 'phyllo-theme-test', outdir: null } as never),
+    resolveConfig({ theme: 'phyllo-theme-example', outdir: null } as never),
   ).toThrow('outdir must be a string.');
 
   expect(() =>
-    resolveConfig({ theme: 'phyllo-theme-test', markdown: null } as never),
+    resolveConfig({ theme: 'phyllo-theme-example', markdown: null } as never),
   ).toThrow('markdown must be an object.');
 
   expect(() =>
     resolveConfig({
-      theme: 'phyllo-theme-test',
+      theme: 'phyllo-theme-example',
       markdown: { highlight: null },
     } as never),
   ).toThrow('markdown.highlight must be a boolean.');
 
   expect(() =>
     resolveConfig({
-      theme: 'phyllo-theme-test',
+      theme: 'phyllo-theme-example',
       markdown: { remarkPlugins: null },
     } as never),
   ).toThrow('markdown.remarkPlugins must be an array.');

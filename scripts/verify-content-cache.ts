@@ -182,7 +182,7 @@ try {
 
   await writeFile(
     join(site, 'content/index.mdx'),
-    '```js\nconst highlighted = 1;\n```\n',
+    ['```js', 'const highlighted = 1;', '```', ''].join('\n'),
   );
 
   await writeFile(
