@@ -32,7 +32,7 @@ export function Dropdown({
         }
       }}
       onKeyDown={event => {
-        if (event.key === 'Tab') {
+        if (event.key === 'Tab' || event.key === 'Escape') {
           keyboard.current = true;
         }
 

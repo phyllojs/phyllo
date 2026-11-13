@@ -96,7 +96,7 @@ export function Search() {
             return;
           }
 
-          if (['Tab', 'ArrowDown', 'ArrowUp'].includes(event.key)) {
+          if (['Tab', 'ArrowDown', 'ArrowUp', 'Escape'].includes(event.key)) {
             keyboard.current = true;
           }
           const links = Array.from(
