@@ -29,13 +29,24 @@ try {
 
   await writeFile(
     theme,
-    "import icon from './icon.svg';\n\nexport const iconUrl = icon;\n",
+    [
+      "import icon from './icon.svg';",
+      '',
+      'export const iconUrl = icon;',
+      '',
+    ].join('\n'),
   );
   await writeFile(style, ".icon { background-image: url('./icon.svg'); }\n");
 
   await writeFile(
     entry,
-    "import './style.css';\nimport { iconUrl } from './theme';\n\nexport { iconUrl };\n",
+    [
+      "import './style.css';",
+      "import { iconUrl } from './theme';",
+      '',
+      'export { iconUrl };',
+      '',
+    ].join('\n'),
   );
 
   const project = verifyProject(root);

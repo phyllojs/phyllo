@@ -105,7 +105,11 @@ export function contentPlugin(options: ContentPluginOptions): BunPlugin {
       build.onLoad(
         { filter: /.*/, namespace: ASSET_NAMESPACE },
         async ({ path }) => ({
-          contents: await assetModule(project, path.split('?')[0]!, files),
+          contents: await assetModule(
+            project,
+            path.replace(/\?phyllo-asset$/, ''),
+            files,
+          ),
           loader: 'js',
         }),
       );
