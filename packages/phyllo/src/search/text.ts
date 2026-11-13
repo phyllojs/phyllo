@@ -21,14 +21,11 @@ export function tokenize(text: string): string[] {
  * @returns 最多 180 个字符的摘要，截断处使用省略号。
  */
 export function snippet(text: string, terms: string[]): string {
-  const lower = text.toLowerCase();
-  const positions = terms
-    .map(term => lower.indexOf(term.toLowerCase()))
-    .filter(position => position >= 0);
-  const start = Math.max(
-    0,
-    (positions.length ? Math.min(...positions) : 0) - 48,
-  );
+  const pattern = terms
+    .map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|');
+  const position = pattern ? text.search(new RegExp(pattern, 'i')) : 0;
+  const start = Math.max(0, position - 48);
   const excerpt = text.slice(start, start + 180);
 
   return `${start ? '…' : ''}${excerpt}${start + 180 < text.length ? '…' : ''}`;

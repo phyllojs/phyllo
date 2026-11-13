@@ -21,3 +21,11 @@ test('长文本摘要', () => {
 test('摘要忽略大小写', () => {
   expect(snippet('Hello WORLD', ['world'])).toBe('Hello WORLD');
 });
+
+test('摘要按关键词原文位置截取', () => {
+  expect(snippet(`${'İ'.repeat(100)} hello world`, ['HELLO'])).toContain(
+    'hello world',
+  );
+
+  expect(snippet(`${'a'.repeat(200)} a+b tail`, ['a+b'])).toContain('a+b');
+});
