@@ -26,8 +26,8 @@ export function Header() {
                 label={link.label}
                 active={link.items.some(entry => entry === activeNav)}
               >
-                {link.items.map(entry => (
-                  <li key={entry.href}>
+                {link.items.map((entry, index) => (
+                  <li key={index}>
                     <a
                       href={entry.href}
                       aria-current={

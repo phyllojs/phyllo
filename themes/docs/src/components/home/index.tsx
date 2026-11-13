@@ -32,8 +32,8 @@ export function Hero({ children }: { children?: ReactNode }) {
         {description && <p className="hero-description">{description}</p>}
         {actions.length > 0 && (
           <div className="hero-actions">
-            {actions.map(action => (
-              <a className="hero-link" href={action.href} key={action.href}>
+            {actions.map((action, index) => (
+              <a className="hero-link" href={action.href} key={index}>
                 {action.label}
                 <Icon name="arrow" />
               </a>
@@ -54,8 +54,8 @@ export function Features() {
 
   return frontmatter.features?.length ? (
     <ul className="home-features">
-      {frontmatter.features.map(feature => (
-        <li key={feature.title}>
+      {frontmatter.features.map((feature, index) => (
+        <li key={index}>
           <h2>{feature.title}</h2>
           <p>{feature.description}</p>
         </li>
