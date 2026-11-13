@@ -15,9 +15,8 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 import type { HeadTag } from 'phyllo';
 import { find, hastToReact, html } from 'property-information';
 
-import { type ContentRange, type SiteBuild, createBuild } from '../build';
+import { type BuildSources, type SiteBuild, createBuild } from '../build';
 import { ASSET_MODULE, assetModule } from '../build/assets';
-import { loadProject } from '../config/project';
 import {
   ContentCompileError,
   ContentRouteError,
@@ -25,7 +24,7 @@ import {
 } from '../content';
 import { loadContent } from '../content/compile';
 import { writeIfChanged } from '../utils/fs';
-import { findPackageRoot, isWithin } from '../utils/path';
+import { isWithin } from '../utils/path';
 
 import { assetModulePath, assetSources } from './assets';
 import { contentBridgePath, contentSources } from './content';
@@ -199,23 +198,22 @@ export default {
     });
 
     // `#` 导入的图片统一到内容哈希地址，其余说明符交给打包器原生解析。
-    builder.onResolve({ filter: /^#/ }, async args => {
+    builder.onResolve({ filter: /^#/ }, args => {
       if (!isJavaScriptImport(args.kind)) {
         return;
       }
-      let resolved: string;
 
       try {
-        resolved = resolveSync(args.path, args.resolveDir);
+        const resolved = resolveSync(args.path, args.resolveDir);
+
+        if (!ASSET_MODULE.test(resolved)) {
+          return;
+        }
+        return assetModuleFile(resolved).then(path => ({ path }));
       } catch {
         // 解析不了的说明符交给打包器报错。
         return;
       }
-
-      if (!ASSET_MODULE.test(resolved)) {
-        return;
-      }
-      return { path: await assetModuleFile(resolved) };
     });
 
     // 主题从 JS 导入的图片重定向到生成模块，资源变化时以文件更新驱动热更新。
@@ -350,24 +348,16 @@ function decodePath(pathname: string): string | undefined {
 async function startServer(directory: string, options: DevOptions) {
   // 站内路径统一使用真实路径，避免符号链接路径与工程解析结果不一致时入口模块无法加载。
   const root = await realpath(resolve(directory));
-  const watchers: ReturnType<typeof watch>[] = [];
-  const watching = new Set<string>();
+  const watchers = new Map<string, ReturnType<typeof watch>>();
   const failures = new Map<string, unknown>();
 
   /**
-   * 内容范围：内容目录与目录链接映射出的真实目录。
+   * 最新解析成功的构建来源。
    *
-   * 每轮构建在内容编译前通过 onContentRange 更新；工程信息或目录映射无法
+   * 每轮构建在内容编译前通过 onSources 更新，工程信息或目录映射无法
    * 解析时保留上次结果，隐藏片段的修复才能在出错后触发重建。
    */
-  let contentRange:
-    | {
-        root: string;
-        directories: ReadonlySet<string>;
-        workDir: string;
-        outdir: string;
-      }
-    | undefined;
+  let sources: BuildSources | undefined;
 
   /**
    * 记录全局错误，并把内容错误按页面地址隔离。
@@ -391,20 +381,6 @@ async function startServer(directory: string, options: DevOptions) {
   }
 
   /**
-   * 记录本轮构建解析出的内容范围。
-   *
-   * @param range - 已解析的工程信息与真实目录到逻辑目录的映射。
-   */
-  function updateContentRange(range: ContentRange) {
-    contentRange = {
-      root: range.project.content,
-      directories: new Set(range.directories.keys()),
-      workDir: range.project.workDir,
-      outdir: range.project.outdir,
-    };
-  }
-
-  /**
    * 判断变化路径是否属于支持的内容源：`content/` 内，或目录链接的真实映射目录下。
    *
    * 隐藏片段目录（如 `.fragments`）属于支持的内容导入，需要参与服务端重建。
@@ -413,19 +389,10 @@ async function startServer(directory: string, options: DevOptions) {
    * @returns 属于内容源时为 `true`。
    */
   function isContentSource(changed: string) {
-    const range = contentRange;
-
-    if (!range) {
-      return false;
-    }
-
-    if (isWithin(range.root, changed)) {
-      return true;
-    }
-    let current = dirname(changed);
+    let current = changed;
 
     for (;;) {
-      if (range.directories.has(current)) {
+      if (sources?.directories.has(current)) {
         return true;
       }
       const parent = dirname(current);
@@ -438,65 +405,68 @@ async function startServer(directory: string, options: DevOptions) {
   }
 
   /**
-   * 监听目录及其子目录，内容变化时触发重建。
-   *
-   * @param path - 要监听的目录路径。
+   * 按当前来源同步最小监听范围，关闭已移除或被父目录覆盖的监听。
    */
-  function watchRoot(path: string) {
-    if (watching.has(path)) {
+  function syncWatchers() {
+    if (state.closed) {
       return;
     }
-    watching.add(path);
+    const candidates = [root, ...(sources?.directories.keys() ?? [])];
 
-    watchers.push(
-      watch(path, { recursive: true }, (_event, filename) => {
-        if (filename) {
-          const changed = resolve(path, filename);
-          const parts = relative(path, changed).split(sep);
-          const build = state.build;
-          /*
-           * 生成文件与输出目录按最新解析的真实范围排除，不依赖目录名形态；
-           * 构建失败时 state.build 仍是上一次成功构建，不能覆盖本轮解析结果。
-           */
-          const workDir = contentRange?.workDir ?? build?.project.workDir;
-          const outdir = contentRange?.outdir ?? build?.project.outdir;
+    // 依赖目录内的主题由打包器按真实路径缓存，修改后需要重启开发服务。
+    if (sources && !sources.themeRoot.split(sep).includes('node_modules')) {
+      candidates.push(sources.themeRoot);
+    }
+    const roots: string[] = [];
 
-          if (
-            (workDir !== undefined && isWithin(workDir, changed)) ||
-            (outdir !== undefined && isWithin(outdir, changed)) ||
-            parts.includes('node_modules') ||
-            (parts.some(part => part.startsWith('.')) &&
-              !isContentSource(changed)) ||
-            (build &&
-              changed.endsWith('.css') &&
-              !isWithin(join(build.project.root, 'public'), changed) &&
-              !isContentSource(changed))
-          ) {
-            return;
+    for (const path of candidates.sort()) {
+      if (!roots.some(parent => isWithin(parent, path))) {
+        roots.push(path);
+      }
+    }
+
+    for (const path of roots) {
+      if (watchers.has(path)) {
+        continue;
+      }
+
+      watchers.set(
+        path,
+        watch(path, { recursive: true }, (_event, filename) => {
+          if (filename) {
+            const changed = resolve(path, filename);
+            const parts = relative(path, changed).split(sep);
+            const project = sources?.project;
+            const content = isContentSource(changed);
+
+            /*
+             * 生成文件与输出目录按最新解析的真实范围排除，不依赖目录名形态，
+             * 构建失败时 state.build 仍是上一次成功构建，不能覆盖本轮解析结果。
+             */
+            if (
+              (project !== undefined &&
+                (isWithin(project.workDir, changed) ||
+                  isWithin(project.outdir, changed))) ||
+              parts.includes('node_modules') ||
+              (parts.some(part => part.startsWith('.')) && !content) ||
+              (changed.endsWith('.css') &&
+                !isWithin(join(root, 'public'), changed) &&
+                !content)
+            ) {
+              return;
+            }
           }
-        }
-        rebuild();
-      }).on('error', console.error),
-    );
-  }
-
-  /**
-   * 站点外的主题源码不在项目监听范围内，需要单独监听。
-   *
-   * 依赖目录内的主题不单独监听：开发打包器按真实路径缓存这些模块，
-   * 监听只会让服务端与客户端产物分叉，主题源码改动后需要重启开发服务。
-   *
-   * @param themeRoot - 主题包目录。
-   * @param root - 站点根目录。
-   */
-  function watchTheme(themeRoot: string, root: string) {
-    if (
-      themeRoot.split(sep).includes('node_modules') ||
-      isWithin(root, themeRoot)
-    ) {
-      return;
+          rebuild();
+        }).on('error', console.error),
+      );
     }
-    watchRoot(themeRoot);
+
+    for (const [path, watcher] of watchers) {
+      if (!roots.includes(path)) {
+        watchers.delete(path);
+        watcher.close();
+      }
+    }
   }
 
   /**
@@ -655,13 +625,15 @@ async function startServer(directory: string, options: DevOptions) {
           const next = await createBuild(directory, {
             development: true,
             previous,
-            onContentRange: updateContentRange,
+            onSources(next) {
+              sources = next;
+              syncWatchers();
+            },
           });
 
           state.build = next;
           state.error = undefined;
           failures.clear();
-          watchTheme(next.themeRoot, next.project.root);
 
           /*
            * 每轮重建都按最新编译结果刷新桥接：配置变化、引用资源变化与源文件变化
@@ -705,37 +677,9 @@ async function startServer(directory: string, options: DevOptions) {
     return running;
   }
 
-  try {
-    state.build = await createBuild(directory, {
-      development: true,
-      onContentRange: updateContentRange,
-    });
-  } catch (error) {
-    reportError(error);
-
-    // 首次构建失败时没有主题信息，按配置定位主题源码继续监听修复。
-    try {
-      const project = await loadProject(directory);
-      const theme = resolveSync(project.config.theme, project.root);
-
-      watchTheme(findPackageRoot(dirname(theme)), project.root);
-
-      // 恢复流程同样按已解析的目录排除生成文件与输出目录。
-      contentRange = {
-        root: project.content,
-        directories: contentRange?.directories ?? new Set(),
-        workDir: project.workDir,
-        outdir: project.outdir,
-      };
-    } catch {
-      // 配置或主题无法解析时没有可监听的源码。
-    }
-  }
   const entryDir = join(root, '.phyllo', 'dev');
 
-  if (!state.build) {
-    await writeIfChanged(join(entryDir, 'client.ts'), CLIENT_STUB);
-  }
+  await writeIfChanged(join(entryDir, 'client.ts'), CLIENT_STUB);
   await writeIfChanged(join(entryDir, 'index.html'), ENTRY_SOURCE);
 
   const entry = (await import(join(entryDir, 'index.html')))
@@ -755,13 +699,6 @@ async function startServer(directory: string, options: DevOptions) {
     fetch: handleRequest,
   });
 
-  watchRoot(root);
-
-  if (state.build) {
-    watchTheme(state.build.themeRoot, state.build.project.root);
-  }
-  process.send?.(server.url.href);
-
   /**
    * 停止文件监听并关闭服务器。
    */
@@ -771,9 +708,10 @@ async function startServer(directory: string, options: DevOptions) {
     }
     state.closed = true;
 
-    for (const watcher of watchers) {
+    for (const watcher of watchers.values()) {
       watcher.close();
     }
+    watchers.clear();
     await state.pending;
     await server.stop(true);
     process.exit(0);
@@ -782,6 +720,10 @@ async function startServer(directory: string, options: DevOptions) {
   process.once('SIGINT', stop);
   process.once('SIGTERM', stop);
   process.once('disconnect', stop);
+
+  syncWatchers();
+  await rebuild();
+  process.send?.(server.url.href);
 }
 
 if (import.meta.main) {

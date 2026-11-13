@@ -663,7 +663,18 @@ try {
     }
 
     // 站点外的本地主题：保持原生监听，页面与客户端都更新。
+    await writeFile(
+      join(outer, 'theme-external/src/index.tsx'),
+      'export default function Layout() { return <div>',
+    );
     await useTheme('theme-external');
+    await waitForPage(server, '', 500);
+
+    // 新主题首次编译失败后，仅修主题源码即可恢复。
+    await writeFile(
+      join(outer, 'theme-external/src/index.tsx'),
+      plainLayout('EXTERNAL_ONE'),
+    );
     await waitForPage(server, 'EXTERNAL_ONE');
 
     await Bun.sleep(10);

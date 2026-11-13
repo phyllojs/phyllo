@@ -9,7 +9,7 @@ import { dev } from '../packages/core/src/dev';
 /**
  * 验证开发服务在内容出错后的恢复路径。
  *
- * 隐藏片段、目录链接中的隐藏片段与间接配置切换都必须能在只修复片段的情况下
+ * 隐藏片段、项目外目录链接中的隐藏片段与间接配置切换都必须能在只修复片段的情况下
  * 触发重建并恢复，不依赖可见文章的改动。站点通过目录链接启动，同时覆盖符号
  * 链接站点根路径。同一进程中移除导入后的废弃片段改坏时不阻断应用，恢复导入时
  * 错误重新暴露。
@@ -19,6 +19,7 @@ import { dev } from '../packages/core/src/dev';
 const parent = await mkdtemp(join(tmpdir(), 'phyllo-dev-recovery-'));
 const root = join(parent, 'site');
 const linked = join(parent, 'linked-site');
+const shared = join(parent, 'shared');
 
 type Server = Awaited<ReturnType<typeof dev>>;
 
@@ -105,12 +106,12 @@ async function waitFor(
  */
 async function buildId() {
   const source = await file(join(root, '.phyllo/dev/client.ts')).text();
-  const match = /const buildId = "([^"]+)";/.exec(source);
+  const [, id] = /const buildId = "([^"]+)";/.exec(source) ?? [];
 
-  if (match === null) {
+  if (id === undefined) {
     throw new Error('开发入口缺少构建标识。');
   }
-  return match[1]!;
+  return id;
 }
 
 /**
@@ -142,7 +143,12 @@ async function waitForBuild(previous: string) {
  */
 function cssUrls(page: string) {
   return [...page.matchAll(/href="(\/_phyllo\/media\/[a-z0-9]+\.css)"/g)].map(
-    match => match[1]!,
+    ([, url]) => {
+      if (url === undefined) {
+        throw new Error('CSS 链接缺少媒体地址。');
+      }
+      return url;
+    },
   );
 }
 
@@ -163,17 +169,9 @@ async function waitForCss(
   const signal = AbortSignal.timeout(20_000);
 
   for (;;) {
-    let urls: string[] | undefined;
-
-    try {
-      const page = await (
-        await fetch(new URL('/css-page', server.url), { signal })
-      ).text();
-
-      urls = cssUrls(page);
-    } catch {
-      // 请求失败时继续轮询直到超时。
-    }
+    const urls = await fetch(new URL('/css-page', server.url), { signal })
+      .then(response => response.text())
+      .then(cssUrls, () => undefined);
 
     if (
       urls !== undefined &&
@@ -200,7 +198,7 @@ async function waitForCss(
  */
 async function writeSite() {
   await mkdir(join(root, 'content/.fragments'), { recursive: true });
-  await mkdir(join(root, 'shared/source/.fragments'), { recursive: true });
+  await mkdir(join(shared, 'source/.fragments'), { recursive: true });
 
   await writeFile(
     join(root, 'phyllo.config.ts'),
@@ -210,54 +208,62 @@ async function writeSite() {
 
   await writeFile(
     join(root, 'content/article.mdx'),
-    "import Note from './.fragments/note.mdx';\n\n<Note />\n",
+    ["import Note from './.fragments/note.mdx';", '', '<Note />', ''].join(
+      '\n',
+    ),
   );
   await writeFragment(join(root, 'content/.fragments/note.mdx'), 'PLAIN_ONE');
 
   await writeFile(
-    join(root, 'shared/source/alias.mdx'),
-    "import Note from './.fragments/note.mdx';\n\n<Note />\n",
+    join(shared, 'source/alias.mdx'),
+    ["import Note from './.fragments/note.mdx';", '', '<Note />', ''].join(
+      '\n',
+    ),
   );
 
-  await writeFragment(
-    join(root, 'shared/source/.fragments/note.mdx'),
-    'ALIAS_ONE',
-  );
+  await writeFragment(join(shared, 'source/.fragments/note.mdx'), 'ALIAS_ONE');
 
-  await symlink(join(root, 'shared/source'), join(root, 'content/published'));
+  await writeFile(join(shared, 'source/article.md'), '# EXTERNAL_ONE\n');
+  await symlink(join(shared, 'source'), join(root, 'content/published'));
+
+  // 运行中新增的目录链接，首次编译失败后仅修改外部文章即可恢复。
+  await mkdir(join(shared, 'additional'));
+  await writeFile(join(shared, 'additional/alias.mdx'), '<unclosed');
 
   // 链接目录根目录没有文章：祖先映射覆盖隐藏片段的真实位置。
-  await mkdir(join(root, 'shared/deep/posts'), { recursive: true });
-  await mkdir(join(root, 'shared/deep/.fragments'), { recursive: true });
+  await mkdir(join(shared, 'deep/posts'), { recursive: true });
+  await mkdir(join(shared, 'deep/.fragments'), { recursive: true });
 
   await writeFile(
-    join(root, 'shared/deep/posts/note-page.mdx'),
-    "import Note from '../.fragments/note.mdx';\n\n<Note />\n",
+    join(shared, 'deep/posts/note-page.mdx'),
+    ["import Note from '../.fragments/note.mdx';", '', '<Note />', ''].join(
+      '\n',
+    ),
   );
 
   await writeFragment(
-    join(root, 'shared/deep/.fragments/note.mdx'),
+    join(shared, 'deep/.fragments/note.mdx'),
     'SIBLING_NOTE_ONE',
   );
 
-  await symlink(join(root, 'shared/deep'), join(root, 'content/sibling'));
+  await symlink(join(shared, 'deep'), join(root, 'content/sibling'));
 
   // 工作目录经符号链接指向可见目录：生成文件不触发重复重建。
   await mkdir(join(root, 'cache'), { recursive: true });
   await symlink(join(root, 'cache'), join(root, '.phyllo'));
 
   // 隐藏目录符号链接：片段按逻辑路径解析链接，改动参与重建。
-  await mkdir(join(root, 'shared/.notes'), { recursive: true });
+  await mkdir(join(shared, '.notes'), { recursive: true });
 
   await writeFile(
-    join(root, 'shared/.notes/note.mdx'),
-    '[Article](../article.md)\n\nHIDDEN_LINK_ONE\n',
+    join(shared, '.notes/note.mdx'),
+    ['[Article](../article.md)', '', 'HIDDEN_LINK_ONE', ''].join('\n'),
   );
-  await symlink(join(root, 'shared/.notes'), join(root, 'content/.notes'));
+  await symlink(join(shared, '.notes'), join(root, 'content/.notes'));
 
   await writeFile(
     join(root, 'content/hidden-link.mdx'),
-    "import Note from './.notes/note.mdx';\n\n<Note />\n",
+    ["import Note from './.notes/note.mdx';", '', '<Note />', ''].join('\n'),
   );
 
   // Markdown 引用的 CSS：普通目录、隐藏目录与目录链接。
@@ -280,13 +286,13 @@ async function writeSite() {
   );
 
   await writeFile(
-    join(root, 'shared/source/style-linked.css'),
+    join(shared, 'source/style-linked.css'),
     '/* linked one */\n',
   );
 
   await symlink(
     join(import.meta.dir, '../docs/node_modules'),
-    join(root, 'node_modules'),
+    join(parent, 'node_modules'),
   );
 }
 
@@ -333,22 +339,39 @@ try {
         throw new Error('无源码变化时构建标识不应变化。');
       }
     }
+
+    // 项目外文章的修改、增加和删除都更新路由。
+    await waitFor(first, '/published/article', 200, 'EXTERNAL_ONE');
+    await writeFile(join(shared, 'source/article.md'), '# EXTERNAL_TWO\n');
+    await waitFor(first, '/published/article', 200, 'EXTERNAL_TWO');
+    await writeFile(join(shared, 'source/new.md'), '# EXTERNAL_NEW\n');
+    await waitFor(first, '/published/new', 200, 'EXTERNAL_NEW');
+    await mkdir(join(shared, 'source/nested'), { recursive: true });
+
+    await writeFile(
+      join(shared, 'source/nested/page.md'),
+      '# EXTERNAL_NESTED\n',
+    );
+    await waitFor(first, '/published/nested/page', 200, 'EXTERNAL_NESTED');
+    await rm(join(shared, 'source/article.md'));
+    await waitFor(first, '/published/article', 404);
+
     await writeFragment(join(root, 'content/.fragments/note.mdx'), '<unclosed');
     await waitFor(first, '/article', 500);
     await writeFragment(join(root, 'content/.fragments/note.mdx'), 'PLAIN_TWO');
     await waitFor(first, '/article', 200, 'PLAIN_TWO');
 
-    // 内容目录之外、经目录链接映射的隐藏片段。
+    // 项目目录之外、经目录链接映射的隐藏片段。
     await waitFor(first, '/published/alias', 200, 'ALIAS_ONE');
 
     await writeFragment(
-      join(root, 'shared/source/.fragments/note.mdx'),
+      join(shared, 'source/.fragments/note.mdx'),
       '<unclosed',
     );
     await waitFor(first, '/published/alias', 500);
 
     await writeFragment(
-      join(root, 'shared/source/.fragments/note.mdx'),
+      join(shared, 'source/.fragments/note.mdx'),
       'ALIAS_TWO',
     );
     await waitFor(first, '/published/alias', 200, 'ALIAS_TWO');
@@ -357,7 +380,7 @@ try {
     await waitFor(first, '/sibling/posts/note-page', 200, 'SIBLING_NOTE_ONE');
 
     await writeFragment(
-      join(root, 'shared/deep/.fragments/note.mdx'),
+      join(shared, 'deep/.fragments/note.mdx'),
       'SIBLING_NOTE_TWO',
     );
     await waitFor(first, '/sibling/posts/note-page', 200, 'SIBLING_NOTE_TWO');
@@ -366,8 +389,8 @@ try {
     await waitFor(first, '/hidden-link', 200, 'HIDDEN_LINK_ONE');
 
     await writeFile(
-      join(root, 'shared/.notes/note.mdx'),
-      '[Article](../article.md)\n\nHIDDEN_LINK_TWO\n',
+      join(shared, '.notes/note.mdx'),
+      ['[Article](../article.md)', '', 'HIDDEN_LINK_TWO', ''].join('\n'),
     );
     await waitFor(first, '/hidden-link', 200, 'HIDDEN_LINK_TWO');
 
@@ -376,7 +399,7 @@ try {
     const cssFiles = [
       join(root, 'content/style-plain.css'),
       join(root, 'content/.fragments/style-hidden.css'),
-      join(root, 'shared/source/style-linked.css'),
+      join(shared, 'source/style-linked.css'),
     ] as const;
 
     let cssHrefs = cssUrls(cssPage);
@@ -390,12 +413,23 @@ try {
       cssHrefs = await waitForCss(first, cssHrefs, index);
     }
 
+    await symlink(join(shared, 'additional'), join(root, 'content/additional'));
+    await waitFor(first, '/additional/alias', 500);
+
+    await writeFile(
+      join(shared, 'additional/alias.mdx'),
+      '# ADDITIONAL_FIXED\n',
+    );
+    await waitFor(first, '/additional/alias', 200, 'ADDITIONAL_FIXED');
+
     // 间接配置切换内容目录，新目录的隐藏片段有错误。
     await mkdir(join(root, 'new-content/.fragments'), { recursive: true });
 
     await writeFile(
       join(root, 'new-content/article2.mdx'),
-      "import Note from './.fragments/note.mdx';\n\n<Note />\n",
+      ["import Note from './.fragments/note.mdx';", '', '<Note />', ''].join(
+        '\n',
+      ),
     );
 
     await writeFragment(
@@ -410,26 +444,35 @@ try {
       'NEW_FIXED',
     );
     await waitFor(first, '/article2', 200, 'NEW_FIXED');
+
+    // 配置切换后，旧的项目外内容目录不再触发重建。
+    const switched = await buildId();
+
+    await writeFile(join(shared, 'source/unused.md'), '# UNUSED\n');
+    await Bun.sleep(1000);
+
+    if ((await buildId()) !== switched) {
+      throw new Error('旧的项目外内容目录不应在配置切换后触发重建。');
+    }
   } finally {
     await first.stop();
   }
 
-  // 启动即失败：只修隐藏片段恢复。
-  await writeFragment(
-    join(root, 'new-content/.fragments/note.mdx'),
-    '<unclosed',
-  );
+  // 启动即失败：只修项目外的隐藏片段恢复。
+  await writeFile(join(root, 'settings.ts'), settings('content'));
+
+  await writeFragment(join(shared, 'source/.fragments/note.mdx'), '<unclosed');
 
   const second = await dev(linked, { port: 0 });
 
   try {
-    await waitFor(second, '/article2', 500);
+    await waitFor(second, '/published/alias', 500);
 
     await writeFragment(
-      join(root, 'new-content/.fragments/note.mdx'),
-      'NEW_AGAIN',
+      join(shared, 'source/.fragments/note.mdx'),
+      'EXTERNAL_STARTUP_FIXED',
     );
-    await waitFor(second, '/article2', 200, 'NEW_AGAIN');
+    await waitFor(second, '/published/alias', 200, 'EXTERNAL_STARTUP_FIXED');
   } finally {
     await second.stop();
   }
@@ -439,9 +482,11 @@ try {
   const pagePath = join(root, 'new-content/deprecated.mdx');
   const fragmentPath = join(root, 'new-content/.fragments/dep.mdx');
 
+  await writeFile(join(root, 'settings.ts'), settings('new-content'));
+
   await writeFile(
     pagePath,
-    "import Note from './.fragments/dep.mdx';\n\n<Note />\n",
+    ["import Note from './.fragments/dep.mdx';", '', '<Note />', ''].join('\n'),
   );
   await writeFragment(fragmentPath, 'DEP_ONE');
 
@@ -450,7 +495,7 @@ try {
   try {
     await waitFor(third, '/deprecated', 200, 'DEP_ONE');
 
-    await writeFile(pagePath, '# Removed\n\nNO_IMPORT\n');
+    await writeFile(pagePath, ['# Removed', '', 'NO_IMPORT', ''].join('\n'));
     await waitFor(third, '/deprecated', 200, 'NO_IMPORT');
 
     const previous = await buildId();
@@ -462,7 +507,9 @@ try {
 
     await writeFile(
       pagePath,
-      "import Note from './.fragments/dep.mdx';\n\n<Note />\n",
+      ["import Note from './.fragments/dep.mdx';", '', '<Note />', ''].join(
+        '\n',
+      ),
     );
     await waitFor(third, '/deprecated', 500);
 
@@ -477,7 +524,9 @@ try {
 
   await writeFile(
     join(root, 'dist/article3.mdx'),
-    "import Note from './.fragments/note.mdx';\n\n<Note />\n",
+    ["import Note from './.fragments/note.mdx';", '', '<Note />', ''].join(
+      '\n',
+    ),
   );
   await writeFragment(join(root, 'dist/.fragments/note.mdx'), '<unclosed');
   await writeFile(join(root, 'settings.ts'), settings('content'));
@@ -497,7 +546,7 @@ try {
   }
 
   console.log(
-    '开发恢复验证通过：普通目录、链接目录与间接配置切换均可只修隐藏片段恢复，链接目录根目录无文章时隐藏片段改动仍触发重建，隐藏目录符号链接中的片段改动触发重建，输出目录改为内容目录后只修隐藏片段即可恢复，Markdown 引用的 CSS 修改触发重建并更新地址，无源码变化时构建标识保持稳定，移除导入后的废弃片段改坏不阻断应用',
+    '开发恢复验证通过：项目外文章的修改、增加和删除均更新路由，运行中新增目录链接和启动时外部源码出错均可只修外部文件恢复，普通目录与间接配置切换均可只修隐藏片段恢复，链接目录根目录无文章和隐藏目录链接中的片段改动均触发重建，输出目录改为内容目录后只修隐藏片段即可恢复，正文引用的外部 CSS 修改后更新地址，无源码变化时构建标识保持稳定，移除导入后的废弃片段改坏不阻断应用',
   );
 } finally {
   await rm(parent, { recursive: true, force: true });

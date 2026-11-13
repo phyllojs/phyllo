@@ -69,18 +69,18 @@ export interface SiteBuild {
   render: (url: string, resources: Resources) => Promise<string>;
   /** 内容编译器。 */
   compile: ReturnType<typeof createCompiler>;
-  /** 主题包入口所在目录，用于开发服务监听主题源码。 */
-  themeRoot: string;
 }
 
 /**
- * 内容范围解析结果：已解析的工程信息与内容目录映射。
+ * 已解析的构建来源，供开发服务在编译前更新监听范围。
  */
-export interface ContentRange {
+export interface BuildSources {
   /** 已解析的站点工程信息。 */
   project: Project;
   /** 真实目录到内容逻辑目录的映射。 */
   directories: ReadonlyMap<string, string>;
+  /** 主题入口所在的真实包目录。 */
+  themeRoot: string;
 }
 
 /**
@@ -92,11 +92,11 @@ export interface BuildOptions {
   /** 复用上次构建的编译结果。 */
   previous?: SiteBuild;
   /**
-   * 工程信息与内容目录映射解析完成、内容编译开始前的回调。
+   * 构建来源解析完成、内容编译开始前的回调。
    *
-   * 开发监听用它在本轮构建失败时仍能保持最新的内容范围。
+   * 开发监听用它在本轮构建失败时仍能保持最新的来源范围。
    */
-  onContentRange?: (range: ContentRange) => void;
+  onSources?: (sources: BuildSources) => void;
 }
 
 /**
@@ -222,7 +222,7 @@ export async function createBuild(
     }
   }
 
-  options.onContentRange?.({ project, directories });
+  options.onSources?.({ project, directories, themeRoot });
 
   const index = await indexContent(project, compile, scanned);
   const redirects = resolveRedirects(
@@ -409,7 +409,6 @@ export async function createBuild(
     render,
     compile,
     directories,
-    themeRoot,
   };
 }
 
