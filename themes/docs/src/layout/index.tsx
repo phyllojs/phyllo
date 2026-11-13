@@ -30,8 +30,9 @@ export default function Layout({ children }: LayoutProps) {
     return null;
   }
 
+  // 浏览器在接管前恢复保存的明暗设置，仅允许 html 自身存在预期的属性差异。
   return (
-    <html lang={lang}>
+    <html lang={lang} suppressHydrationWarning>
       <Head />
       <body>
         {layout === false ? (
